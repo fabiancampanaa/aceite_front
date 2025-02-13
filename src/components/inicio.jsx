@@ -1,8 +1,11 @@
 import React, { useRef, useState } from "react";
 import axios from "axios";
 import "bulma/css/bulma.min.css";
+import { useNavigate } from "react-router";
+
 
 function Inicio() {
+  let navigate = useNavigate();
   const nameRef = useRef(null);
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
@@ -38,6 +41,7 @@ function Inicio() {
           password: passwordRef.current.value,
         });
         console.log("Usuario Logeado:", response.data);
+        navigate("/dashboard");
       } catch (err) {
         setError("Error al iniciar sesion. Porfavor revise sus credenciales.");
       }
