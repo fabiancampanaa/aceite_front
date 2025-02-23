@@ -8,6 +8,8 @@ function Inicio() {
   let navigate = useNavigate();
   const nameRef = useRef(null);
   const emailRef = useRef(null);
+  const numberRef = useRef(null);
+  const empresaRef = useRef(null);
   const passwordRef = useRef(null);
   const confirmPasswordRef = useRef(null);
   const [isRegistering, setIsRegistering] = useState(false);
@@ -26,7 +28,7 @@ function Inicio() {
       try {
         
         const datos_usuario = { username : nameRef.current.value, email : emailRef.current.value, password : passwordRef.current.value }
-        const datos_envio = {username: nameRef.current.value, email: emailRef.current.value, password:  passwordRef.current.value}
+        const datos_envio = {username: nameRef.current.value, email: emailRef.current.value, password:  passwordRef.current.value, numero_telefono: numberRef.current.value, nombre_empresa: empresaRef.current.value}
         //const datos_envio = JSON.stringify(datos_usuario)
         console.log(datos_envio)
         const response = await axios.post("http://localhost:8000/api/register/", datos_envio);
@@ -53,7 +55,7 @@ function Inicio() {
     <div className="hero is-fullheight is-flex is-align-items-center">
     <div className="container is-flex is-justify-content-center">
       <div className="box" style={{ width: "400px" }}>
-        <h1 className="title has-text-centered">{isRegistering ? "Register" : "Login"}</h1>
+        <h1 className="title has-text-centered">{isRegistering ? "Registro" : "Inicio de sesión"}</h1>
         {error && <p className="has-text-danger has-text-centered">{error}</p>}
         <form onSubmit={handleSubmit}>
           {isRegistering && (
@@ -68,8 +70,40 @@ function Inicio() {
                   required
                 />
               </div>
-            </div>
+            </div>            
           )}
+
+          {isRegistering && (
+            
+          <div className="field">
+          <label className="label">Numero telefonico</label>
+          <div className="control">
+            <input
+              className="input"
+              type="text"
+              placeholder="Ej: 9xxxxxxxx"
+              ref={numberRef}
+              required
+            />
+          </div>
+        </div>    
+          )}
+
+          {isRegistering && (
+             <div className="field">
+             <label className="label">Empresa/Institución</label>
+             <div className="control">
+               <input
+                 className="input"
+                 type="text"
+                 placeholder="Ej: ACME"
+                 ref={empresaRef}
+                 required
+               />
+             </div>
+           </div>
+          )}
+
 
           <div className="field">
             <label className="label">Email</label>
