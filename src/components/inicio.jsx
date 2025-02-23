@@ -3,7 +3,6 @@ import axios from "axios";
 import "bulma/css/bulma.min.css";
 import { useNavigate } from "react-router";
 
-
 function Inicio() {
   let navigate = useNavigate();
   const nameRef = useRef(null);
@@ -24,14 +23,26 @@ function Inicio() {
         setError("Constraseñas no coinciden");
         return;
       }
-      
+
       try {
-        
-        const datos_usuario = { username : nameRef.current.value, email : emailRef.current.value, password : passwordRef.current.value }
-        const datos_envio = {username: nameRef.current.value, email: emailRef.current.value, password:  passwordRef.current.value, numero_telefono: numberRef.current.value, nombre_empresa: empresaRef.current.value}
+        const datos_usuario = {
+          username: nameRef.current.value,
+          email: emailRef.current.value,
+          password: passwordRef.current.value,
+        };
+        const datos_envio = {
+          username: nameRef.current.value,
+          email: emailRef.current.value,
+          password: passwordRef.current.value,
+          numero_telefono: numberRef.current.value,
+          nombre_empresa: empresaRef.current.value,
+        };
         //const datos_envio = JSON.stringify(datos_usuario)
-        console.log(datos_envio)
-        const response = await axios.post("http://localhost:8000/api/register/", datos_envio);
+        console.log(datos_envio);
+        const response = await axios.post(
+          "http://localhost:8000/api/register/",
+          datos_envio
+        );
         console.log("Usuario registrado:", response.data);
       } catch (err) {
         setError("Fallo el registro. Por favor intente nuevamente.");
@@ -50,12 +61,12 @@ function Inicio() {
     }
   };
 
-
   return (
-    <div className="hero is-fullheight is-flex is-align-items-center">
-    <div className="container is-flex is-justify-content-center">
-      <div className="box" style={{ width: "400px" }}>
-        <h1 className="title has-text-centered">{isRegistering ? "Registro" : "Inicio de sesión"}</h1>
+    <div className="hero is-fullheight is-flex is-justify-content-center is-align-items-center">
+      <div className="box" style={{ width: "450px" }}>
+        <h1 className="title has-text-centered">
+          {isRegistering ? "Registro" : "Inicio de sesión"}
+        </h1>
         {error && <p className="has-text-danger has-text-centered">{error}</p>}
         <form onSubmit={handleSubmit}>
           {isRegistering && (
@@ -70,40 +81,38 @@ function Inicio() {
                   required
                 />
               </div>
-            </div>            
+            </div>
           )}
 
           {isRegistering && (
-            
-          <div className="field">
-          <label className="label">Numero telefonico</label>
-          <div className="control">
-            <input
-              className="input"
-              type="text"
-              placeholder="Ej: 9xxxxxxxx"
-              ref={numberRef}
-              required
-            />
-          </div>
-        </div>    
+            <div className="field">
+              <label className="label">Numero telefonico</label>
+              <div className="control">
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Ej: 9xxxxxxxx"
+                  ref={numberRef}
+                  required
+                />
+              </div>
+            </div>
           )}
 
           {isRegistering && (
-             <div className="field">
-             <label className="label">Empresa/Institución</label>
-             <div className="control">
-               <input
-                 className="input"
-                 type="text"
-                 placeholder="Ej: ACME"
-                 ref={empresaRef}
-                 required
-               />
-             </div>
-           </div>
+            <div className="field">
+              <label className="label">Empresa/Institución</label>
+              <div className="control">
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Ej: ACME"
+                  ref={empresaRef}
+                  required
+                />
+              </div>
+            </div>
           )}
-
 
           <div className="field">
             <label className="label">Email</label>
@@ -153,14 +162,18 @@ function Inicio() {
           </div>
         </form>
         <div className="has-text-centered">
-          <button className="button is-text" onClick={() => setIsRegistering(!isRegistering)}>
-            {isRegistering ? "Tiene cuenta? Ingrese" : "No tiene Cuenta? Registrese"}
+          <button
+            className="button is-text"
+            onClick={() => setIsRegistering(!isRegistering)}
+          >
+            {isRegistering
+              ? "Tiene cuenta? Ingrese"
+              : "No tiene Cuenta? Registrese"}
           </button>
         </div>
       </div>
     </div>
-  </div>
   );
-};
+}
 
-export default Inicio
+export default Inicio;
