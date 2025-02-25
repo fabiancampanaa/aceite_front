@@ -1,4 +1,4 @@
-function Dashboard() {
+function Cabecera() {
   return (
     <div className="">
       <figure className="image is-128x128 mx-auto">
@@ -8,4 +8,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default Cabecera;
