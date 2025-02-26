@@ -62,7 +62,7 @@ function Inicio() {
   };
 
   return (
-    <div className="hero is-fullheight is-flex is-justify-content-center is-align-items-center">
+    <div className="hero-body is-flex is-justify-content-center is-align-items-center">
       <div className="box" style={{ width: "450px" }}>
         <h1 className="title has-text-centered">
           {isRegistering ? "Registro" : "Inicio de sesión"}

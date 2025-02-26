@@ -3,7 +3,7 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 
 function Footer() {
   return (
-    <footer className="footer has-text-white">
+    <footer className="hero-foot has-text-white">
       <div className="container">
         <div className="columns is-vcentered">
           {/* Redes Sociales */}
