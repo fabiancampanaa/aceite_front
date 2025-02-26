@@ -13,6 +13,7 @@ function Inicio() {
   const confirmPasswordRef = useRef(null);
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,13 +38,14 @@ function Inicio() {
           numero_telefono: numberRef.current.value,
           nombre_empresa: empresaRef.current.value,
         };
-        //const datos_envio = JSON.stringify(datos_usuario)
-        console.log(datos_envio);
         const response = await axios.post(
           "http://localhost:8000/api/register/",
           datos_envio
         );
+        setIsRegistering(!isRegistering);
         console.log("Usuario registrado:", response.data);
+        setMessage("Usuario Registrado");
+        passwordRef.current.value = "";
       } catch (err) {
         setError("Fallo el registro. Por favor intente nuevamente.");
       }
@@ -68,6 +70,9 @@ function Inicio() {
           {isRegistering ? "Registro" : "Inicio de sesión"}
         </h1>
         {error && <p className="has-text-danger has-text-centered">{error}</p>}
+        {message && (
+          <p className="has-text-success has-text-centered">{message}</p>
+        )}
         <form onSubmit={handleSubmit}>
           {isRegistering && (
             <div className="field">
