@@ -1,8 +1,11 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+import GraficoBarras from "./grafico1";
+import GraficoPreciosHistorico from "./grafico2";
 
 function Dashboard() {
   const [data, setData] = useState([]);
+  const [dataChart, setDataChart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -24,13 +27,8 @@ function Dashboard() {
       <h1 className="title">Dashboard</h1>
       {loading && <p>Loading...</p>}
       {error && <p className="has-text-danger">{error}</p>}
-      <ul>
-        {data.map((item) => (
-          <li key={item.id}>
-            {item.producto} - {item.marca}
-          </li> // Ajusta según la estructura de tu API
-        ))}
-      </ul>
+      <GraficoBarras />
+      <GraficoPreciosHistorico />
     </div>
   );
 }
