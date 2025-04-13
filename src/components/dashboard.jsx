@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import GraficoBarras from "./grafico1";
 import GraficoPreciosHistorico from "./grafico2";
 import GraficoPorMarketplace from "./grafico3";
+import GraficoPreciosMensuales from "./grafico4";
 
 function Dashboard() {
   let navigate = useNavigate();
@@ -46,6 +47,9 @@ function Dashboard() {
         </div>
         <div class="cell m1">
           <GraficoPreciosHistorico />
+        </div>
+        <div class="cell m1">
+          <GraficoPreciosMensuales />
         </div>
       </div>
     </div>
