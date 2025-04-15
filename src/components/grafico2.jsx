@@ -21,7 +21,7 @@ const GraficoPreciosHistorico = () => {
         // Obtener todas las marcas únicas
         const uniqueBrands = [...new Set(res.data.map((item) => item.marca))];
         setAllBrands(uniqueBrands);
-        setSelectedBrands(uniqueBrands.slice(0, 3)); // Seleccionar primeras 3 por defecto
+        setSelectedBrands(uniqueBrands.slice(0, 3)); // Seleccionar primeras 3 por defecto, EVALUAR QUITARLO
       } catch (err) {
         setError("Error al cargar los datos históricos");
         console.error(err);
