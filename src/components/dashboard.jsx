@@ -2,8 +2,8 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import GraficoPorMarketplace from "./grafico_cant_marca";
-import GraficoPreciosMensuales from "./grafico_por_market";
-import GraficoComparacionPorMarketplace from "./grafico_historico_mensual";
+import GraficoPreciosMensuales from "./grafico_evolucion_precios";
+import GraficoComparacionPorMarketplace from "./grafico_comp_market";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -79,7 +79,7 @@ function Dashboard() {
       )}
 
       {!loading && !error && (
-        <div className="fixed-grid has-2-cols">
+        <div className="fixed-grid has-1-cols">
           <div className="grid">
             <div className="cell">
               <GraficoPorMarketplace data={data} />

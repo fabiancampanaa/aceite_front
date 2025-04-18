@@ -249,7 +249,7 @@ const GraficoPreciosMensuales = () => {
   return (
     <div style={{ padding: 20 }}>
       <Card
-        title="Evolución de Precios Mensuales"
+        title="Evolución de Precios"
         extra={
           <Button
             onClick={resetFilters}
