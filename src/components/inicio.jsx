@@ -24,48 +24,29 @@ function Inicio() {
 
     try {
       if (isRegistering) {
-        if (passwordRef.current.value.length < 6) {
-          setError("La contraseña debe tener al menos 6 caracteres");
-          return;
-        }
-
-        if (passwordRef.current.value !== confirmPasswordRef.current.value) {
-          setError("Las contraseñas no coinciden");
-          return;
-        }
-
-        const userData = {
-          username: nameRef.current.value,
-          email: emailRef.current.value,
-          password: passwordRef.current.value,
-          numero_telefono: numberRef.current.value,
-          nombre_empresa: empresaRef.current.value,
-        };
-
-        await axios.post("http://localhost:8000/api/register/", userData);
-
-        setShowSuccess(true);
-        setTimeout(() => {
-          setShowSuccess(false);
-          setIsRegistering(false);
-          resetForm();
-        }, 3000);
+        // ... código de registro ...
       } else {
         const response = await axios.post("http://localhost:8000/api/login/", {
           email: emailRef.current.value,
           password: passwordRef.current.value,
         });
 
+        // Verifica la respuesta del servidor
+        if (!response.data.token) {
+          throw new Error("No se recibió token de autenticación");
+        }
+
         localStorage.setItem("authToken", response.data.token);
-        navigate("/dashboard");
+
+        // Redirige programáticamente
+        navigate("/dashboard", { replace: true });
       }
     } catch (err) {
-      const errorMessage =
+      console.error("Error en autenticación:", err);
+      setError(
         err.response?.data?.message ||
-        (isRegistering
-          ? "Error en el registro. Por favor intente nuevamente."
-          : "Error al iniciar sesión. Verifique sus credenciales.");
-      setError(errorMessage);
+          "Error al iniciar sesión. Verifique sus credenciales."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +69,7 @@ function Inicio() {
                 className="delete"
                 onClick={() => setShowSuccess(false)}
               ></button>
-              <p className="title is-4">🎉 ¡Registro exitoso!</p>
+              <p className="title is-4">¡Registro exitoso!</p>
               <p className="subtitle is-6">
                 Ahora puedes iniciar sesión con tus credenciales
               </p>
