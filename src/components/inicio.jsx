@@ -1,183 +1,246 @@
 import React, { useRef, useState } from "react";
 import axios from "axios";
 import "bulma/css/bulma.min.css";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 function Inicio() {
-  let navigate = useNavigate();
+  const navigate = useNavigate();
   const nameRef = useRef(null);
   const emailRef = useRef(null);
   const numberRef = useRef(null);
   const empresaRef = useRef(null);
   const passwordRef = useRef(null);
   const confirmPasswordRef = useRef(null);
+
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setIsLoading(true);
 
-    if (isRegistering) {
-      if (passwordRef.current.value !== confirmPasswordRef.current.value) {
-        setError("Constraseñas no coinciden");
-        return;
-      }
+    try {
+      if (isRegistering) {
+        if (passwordRef.current.value.length < 6) {
+          setError("La contraseña debe tener al menos 6 caracteres");
+          return;
+        }
 
-      try {
-        const datos_usuario = {
-          username: nameRef.current.value,
-          email: emailRef.current.value,
-          password: passwordRef.current.value,
-        };
-        const datos_envio = {
+        if (passwordRef.current.value !== confirmPasswordRef.current.value) {
+          setError("Las contraseñas no coinciden");
+          return;
+        }
+
+        const userData = {
           username: nameRef.current.value,
           email: emailRef.current.value,
           password: passwordRef.current.value,
           numero_telefono: numberRef.current.value,
           nombre_empresa: empresaRef.current.value,
         };
-        const response = await axios.post(
-          "http://localhost:8000/api/register/",
-          datos_envio
-        );
-        setIsRegistering(!isRegistering);
-        console.log("Usuario registrado:", response.data);
-        setMessage("Usuario Registrado");
-        passwordRef.current.value = "";
-      } catch (err) {
-        setError("Fallo el registro. Por favor intente nuevamente.");
-      }
-    } else {
-      try {
+
+        await axios.post("http://localhost:8000/api/register/", userData);
+
+        setShowSuccess(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          setIsRegistering(false);
+          resetForm();
+        }, 3000);
+      } else {
         const response = await axios.post("http://localhost:8000/api/login/", {
           email: emailRef.current.value,
           password: passwordRef.current.value,
         });
-        console.log("Usuario Logeado:", response.data);
+
+        localStorage.setItem("authToken", response.data.token);
         navigate("/dashboard");
-      } catch (err) {
-        setError("Error al iniciar sesion. Porfavor revise sus credenciales.");
       }
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message ||
+        (isRegistering
+          ? "Error en el registro. Por favor intente nuevamente."
+          : "Error al iniciar sesión. Verifique sus credenciales.");
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const resetForm = () => {
+    emailRef.current.value = "";
+    passwordRef.current.value = "";
+    if (confirmPasswordRef.current) confirmPasswordRef.current.value = "";
+  };
+
   return (
-    <div className="hero-body is-flex is-justify-content-center is-align-items-center">
-      <div className="box" style={{ width: "450px" }}>
-        <h1 className="title has-text-centered">
-          {isRegistering ? "Registro" : "Inicio de sesión"}
-        </h1>
-        {error && <p className="has-text-danger has-text-centered">{error}</p>}
-        {message && (
-          <p className="has-text-success has-text-centered">{message}</p>
-        )}
-        <form onSubmit={handleSubmit}>
-          {isRegistering && (
-            <div className="field">
-              <label className="label">Nombre</label>
-              <div className="control">
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="ejmplo: Juan Perez"
-                  ref={nameRef}
-                  required
-                />
-              </div>
+    <section className="hero is-fullheight">
+      <div className="hero-body is-flex is-justify-content-center is-align-items-center">
+        <div className="box" style={{ width: "450px", position: "relative" }}>
+          {/* Notificación de éxito */}
+          {showSuccess && (
+            <div className="notification is-success is-light has-text-centered">
+              <button
+                className="delete"
+                onClick={() => setShowSuccess(false)}
+              ></button>
+              <p className="title is-4">🎉 ¡Registro exitoso!</p>
+              <p className="subtitle is-6">
+                Ahora puedes iniciar sesión con tus credenciales
+              </p>
             </div>
           )}
 
-          {isRegistering && (
-            <div className="field">
-              <label className="label">Numero telefonico</label>
-              <div className="control">
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="Ej: 9xxxxxxxx"
-                  ref={numberRef}
-                  required
-                />
-              </div>
+          <h1 className="title has-text-centered">
+            {isRegistering ? "Registro" : "Inicio de sesión"}
+          </h1>
+
+          {error && (
+            <div className="notification is-danger is-light">
+              <button className="delete" onClick={() => setError("")}></button>
+              {error}
             </div>
           )}
 
-          {isRegistering && (
+          <form onSubmit={handleSubmit}>
+            {isRegistering && (
+              <>
+                <div className="field">
+                  <label className="label">Nombre</label>
+                  <div className="control has-icons-left">
+                    <input
+                      className="input"
+                      type="text"
+                      placeholder="Ej: Juan Pérez"
+                      ref={nameRef}
+                      required
+                    />
+                    <span className="icon is-small is-left">
+                      <i className="fas fa-user"></i>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="field">
+                  <label className="label">Teléfono</label>
+                  <div className="control has-icons-left">
+                    <input
+                      className="input"
+                      type="tel"
+                      placeholder="Ej: 912345678"
+                      ref={numberRef}
+                      required
+                    />
+                    <span className="icon is-small is-left">
+                      <i className="fas fa-phone"></i>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="field">
+                  <label className="label">Empresa</label>
+                  <div className="control has-icons-left">
+                    <input
+                      className="input"
+                      type="text"
+                      placeholder="Ej: Mi Empresa S.A."
+                      ref={empresaRef}
+                      required
+                    />
+                    <span className="icon is-small is-left">
+                      <i className="fas fa-building"></i>
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
+
             <div className="field">
-              <label className="label">Empresa/Institución</label>
-              <div className="control">
+              <label className="label">Email</label>
+              <div className="control has-icons-left">
                 <input
                   className="input"
-                  type="text"
-                  placeholder="Ej: ACME"
-                  ref={empresaRef}
+                  type="email"
+                  placeholder="usuario@ejemplo.com"
+                  ref={emailRef}
                   required
                 />
+                <span className="icon is-small is-left">
+                  <i className="fas fa-envelope"></i>
+                </span>
               </div>
             </div>
-          )}
 
-          <div className="field">
-            <label className="label">Email</label>
-            <div className="control">
-              <input
-                className="input"
-                type="email"
-                placeholder="Ejemplo usuario@ejemplo.com"
-                ref={emailRef}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="field">
-            <label className="label">Password</label>
-            <div className="control">
-              <input
-                className="input"
-                type="password"
-                placeholder="********"
-                ref={passwordRef}
-                required
-              />
-            </div>
-          </div>
-
-          {isRegistering && (
             <div className="field">
-              <label className="label">Confirme Contraseña</label>
-              <div className="control">
+              <label className="label">Contraseña</label>
+              <div className="control has-icons-left">
                 <input
                   className="input"
                   type="password"
-                  placeholder="********"
-                  ref={confirmPasswordRef}
+                  placeholder="••••••••"
+                  ref={passwordRef}
                   required
+                  minLength="6"
                 />
+                <span className="icon is-small is-left">
+                  <i className="fas fa-lock"></i>
+                </span>
               </div>
             </div>
-          )}
 
-          <div className="field">
-            <button className="button is-primary is-fullwidth" type="submit">
-              {isRegistering ? "Registro" : "Inicio"}
+            {isRegistering && (
+              <div className="field">
+                <label className="label">Confirmar Contraseña</label>
+                <div className="control has-icons-left">
+                  <input
+                    className="input"
+                    type="password"
+                    placeholder="••••••••"
+                    ref={confirmPasswordRef}
+                    required
+                    minLength="6"
+                  />
+                  <span className="icon is-small is-left">
+                    <i className="fas fa-lock"></i>
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div className="field mt-5">
+              <button
+                className={`button is-primary is-fullwidth ${
+                  isLoading ? "is-loading" : ""
+                }`}
+                type="submit"
+                disabled={isLoading}
+              >
+                {isRegistering ? "Registrarse" : "Iniciar sesión"}
+              </button>
+            </div>
+          </form>
+
+          <div className="has-text-centered mt-3">
+            <button
+              className="button is-text"
+              onClick={() => {
+                setIsRegistering(!isRegistering);
+                setError("");
+              }}
+              disabled={isLoading}
+            >
+              {isRegistering
+                ? "¿Ya tienes cuenta? Inicia sesión"
+                : "¿No tienes cuenta? Regístrate"}
             </button>
           </div>
-        </form>
-        <div className="has-text-centered">
-          <button
-            className="button is-text"
-            onClick={() => setIsRegistering(!isRegistering)}
-          >
-            {isRegistering
-              ? "Tiene cuenta? Ingrese"
-              : "No tiene Cuenta? Registrese"}
-          </button>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
