@@ -24,7 +24,32 @@ function Inicio() {
 
     try {
       if (isRegistering) {
-        // ... código de registro ...
+        if (passwordRef.current.value.length < 6) {
+          setError("La contraseña debe tener al menos 6 caracteres");
+          return;
+        }
+
+        if (passwordRef.current.value !== confirmPasswordRef.current.value) {
+          setError("Las contraseñas no coinciden");
+          return;
+        }
+
+        const userData = {
+          username: nameRef.current.value,
+          email: emailRef.current.value,
+          password: passwordRef.current.value,
+          numero_telefono: numberRef.current.value,
+          nombre_empresa: empresaRef.current.value,
+        };
+
+        await axios.post("http://localhost:8000/api/register/", userData);
+
+        setShowSuccess(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          setIsRegistering(false);
+          resetForm();
+        }, 3000);
       } else {
         const response = await axios.post("http://localhost:8000/api/login/", {
           email: emailRef.current.value,

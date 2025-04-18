@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import GraficoPorMarketplace from "./grafico_cant_marca";
 import GraficoPreciosMensuales from "./grafico_evolucion_precios";
 import GraficoComparacionPorMarketplace from "./grafico_comp_market";
+import ListaBusquedasRRSS from "./grafico_rrss1";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -89,6 +90,9 @@ function Dashboard() {
             </div>
             <div className="cell">
               <GraficoPreciosMensuales data={data} />
+            </div>
+            <div className="cell">
+              <ListaBusquedasRRSS data={data} />
             </div>
           </div>
         </div>
