@@ -1,10 +1,10 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import GraficoBarras from "./grafico1";
 import GraficoPreciosHistorico from "./grafico2";
 import GraficoPorMarketplace from "./grafico3";
 import GraficoPreciosMensuales from "./grafico4";
+import GraficoComparacionPorMarketplace from "./grafico5";
 
 function Dashboard() {
   let navigate = useNavigate();
@@ -43,10 +43,7 @@ function Dashboard() {
           <GraficoPorMarketplace />
         </div>
         <div class="cell m1">
-          <GraficoBarras />
-        </div>
-        <div class="cell m1">
-          <GraficoPreciosHistorico />
+          <GraficoComparacionPorMarketplace />
         </div>
         <div class="cell m1">
           <GraficoPreciosMensuales />

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import ReactECharts from "echarts-for-react";
 import { getAllBusquedas } from "../api/busquedas.api";
-import { Select, Card, Row, Col, Button } from "antd";
+import { Select, Card, Row, Col, Button, Empty, Tag } from "antd";
 import moment from "moment";
 import "moment/locale/es";
 
@@ -12,10 +12,11 @@ moment.locale("es");
 const GraficoPreciosMensuales = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
-    producto: null,
-    envase: null,
-    marketplace: null,
+    productos: [],
+    envases: [],
+    marketplaces: [],
   });
 
   const [filterOptions, setFilterOptions] = useState({
@@ -30,20 +31,24 @@ const GraficoPreciosMensuales = () => {
         const res = await getAllBusquedas();
         setData(res.data);
 
-        // CORRECCIÓN: Se eliminaron los paréntesis extra aquí
+        const productos = [
+          ...new Set(res.data.map((item) => item.producto)),
+        ].filter(Boolean);
+        const envases = [
+          ...new Set(res.data.map((item) => item.envase)),
+        ].filter(Boolean);
+        const marketplaces = [
+          ...new Set(res.data.map((item) => item.identificacion_url)),
+        ].filter(Boolean);
+
         setFilterOptions({
-          productos: [...new Set(res.data.map((item) => item.producto))].filter(
-            Boolean
-          ),
-          envases: [...new Set(res.data.map((item) => item.envase))].filter(
-            Boolean
-          ),
-          marketplaces: [
-            ...new Set(res.data.map((item) => item.identificacion_url)),
-          ].filter(Boolean),
+          productos,
+          envases,
+          marketplaces,
         });
       } catch (error) {
         console.error("Error fetching data:", error);
+        setError("Error al cargar los datos");
       } finally {
         setLoading(false);
       }
@@ -57,39 +62,46 @@ const GraficoPreciosMensuales = () => {
 
   const resetFilters = () => {
     setFilters({
-      producto: null,
-      envase: null,
-      marketplace: null,
+      productos: [],
+      envases: [],
+      marketplaces: [],
     });
   };
 
-  const processData = () => {
-    // 1. Aplicar filtros
-    const filteredData = data.filter((item) => {
+  const filteredData = useMemo(() => {
+    return data.filter((item) => {
       return (
-        (!filters.producto || item.producto === filters.producto) &&
-        (!filters.envase || item.envase === filters.envase) &&
-        (!filters.marketplace ||
-          item.identificacion_url === filters.marketplace)
+        (filters.productos.length === 0 ||
+          filters.productos.includes(item.producto)) &&
+        (filters.envases.length === 0 ||
+          filters.envases.includes(item.envase)) &&
+        (filters.marketplaces.length === 0 ||
+          filters.marketplaces.includes(item.identificacion_url))
       );
     });
+  }, [data, filters]);
 
-    // 2. Verificar si hay datos después del filtrado
-    if (filteredData.length === 0) {
-      return {
-        xAxis: { type: "category", data: [] },
-        yAxis: { type: "value" },
-        series: [],
-      };
+  const processData = () => {
+    // No mostrar gráfico si no hay filtros aplicados
+    if (
+      filters.productos.length === 0 &&
+      filters.envases.length === 0 &&
+      filters.marketplaces.length === 0
+    ) {
+      return null;
     }
 
-    // 3. Agrupar por mes CORREGIDO
+    // No mostrar gráfico si no hay datos después del filtrado
+    if (filteredData.length === 0) {
+      return null;
+    }
+
+    // Procesamiento de datos para el gráfico
     const monthlyData = {};
 
     filteredData.forEach((item) => {
       if (!item.fecha_extraccion) return;
 
-      // Formatear mes-año correctamente
       const month = moment(item.fecha_extraccion).format("YYYY-MM");
 
       if (!monthlyData[month]) {
@@ -100,7 +112,6 @@ const GraficoPreciosMensuales = () => {
         };
       }
 
-      // Agrupar por marketplace
       const marketplace = item.identificacion_url || "Sin marketplace";
       const precio = parseFloat(item.valor) || 0;
 
@@ -125,19 +136,16 @@ const GraficoPreciosMensuales = () => {
       }
     });
 
-    // 4. Ordenar meses cronológicamente
     const months = Object.keys(monthlyData).sort((a, b) =>
       moment(a, "YYYY-MM").diff(moment(b, "YYYY-MM"))
     );
 
-    // 5. Obtener marketplaces únicos
     const marketplaces = [
       ...new Set(
         filteredData.map((item) => item.identificacion_url).filter(Boolean)
       ),
     ];
 
-    // 6. Preparar series
     const series = marketplaces.map((marketplace) => ({
       name: marketplace,
       type: "line",
@@ -162,7 +170,6 @@ const GraficoPreciosMensuales = () => {
       lineStyle: { width: 3 },
     }));
 
-    // 7. Configuración final del gráfico
     return {
       tooltip: {
         trigger: "axis",
@@ -200,7 +207,6 @@ const GraficoPreciosMensuales = () => {
         axisLabel: {
           rotate: 45,
           interval: 0,
-          formatter: (value) => value, // Mostrar todos los valores
         },
       },
       yAxis: {
@@ -216,16 +222,29 @@ const GraficoPreciosMensuales = () => {
     };
   };
 
-  if (loading)
+  const chartOption = processData();
+
+  if (loading) {
     return (
       <div style={{ padding: 20, textAlign: "center" }}>Cargando datos...</div>
     );
-  if (data.length === 0)
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: 20, textAlign: "center", color: "red" }}>
+        {error}
+      </div>
+    );
+  }
+
+  if (data.length === 0) {
     return (
       <div style={{ padding: 20, textAlign: "center" }}>
         No hay datos disponibles
       </div>
     );
+  }
 
   return (
     <div style={{ padding: 20 }}>
@@ -235,7 +254,9 @@ const GraficoPreciosMensuales = () => {
           <Button
             onClick={resetFilters}
             disabled={
-              !filters.producto && !filters.envase && !filters.marketplace
+              filters.productos.length === 0 &&
+              filters.envases.length === 0 &&
+              filters.marketplaces.length === 0
             }
           >
             Limpiar filtros
@@ -245,11 +266,26 @@ const GraficoPreciosMensuales = () => {
         <Row gutter={16} style={{ marginBottom: 16 }}>
           <Col span={8}>
             <Select
+              mode="multiple"
               style={{ width: "100%" }}
-              placeholder="Filtrar por producto"
-              value={filters.producto}
-              onChange={(value) => handleFilterChange("producto", value)}
+              placeholder="Filtrar por producto(s)"
+              value={filters.productos}
+              onChange={(value) => handleFilterChange("productos", value)}
               allowClear
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+              tagRender={({ label, closable, onClose }) => (
+                <Tag
+                  closable={closable}
+                  onClose={onClose}
+                  style={{ marginRight: 3 }}
+                >
+                  {label}
+                </Tag>
+              )}
             >
               {filterOptions.productos.map((producto) => (
                 <Option key={producto} value={producto}>
@@ -260,11 +296,26 @@ const GraficoPreciosMensuales = () => {
           </Col>
           <Col span={8}>
             <Select
+              mode="multiple"
               style={{ width: "100%" }}
-              placeholder="Filtrar por envase"
-              value={filters.envase}
-              onChange={(value) => handleFilterChange("envase", value)}
+              placeholder="Filtrar por envase(s)"
+              value={filters.envases}
+              onChange={(value) => handleFilterChange("envases", value)}
               allowClear
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+              tagRender={({ label, closable, onClose }) => (
+                <Tag
+                  closable={closable}
+                  onClose={onClose}
+                  style={{ marginRight: 3 }}
+                >
+                  {label}
+                </Tag>
+              )}
             >
               {filterOptions.envases.map((envase) => (
                 <Option key={envase} value={envase}>
@@ -275,11 +326,26 @@ const GraficoPreciosMensuales = () => {
           </Col>
           <Col span={8}>
             <Select
+              mode="multiple"
               style={{ width: "100%" }}
-              placeholder="Filtrar por marketplace"
-              value={filters.marketplace}
-              onChange={(value) => handleFilterChange("marketplace", value)}
+              placeholder="Filtrar por marketplace(s)"
+              value={filters.marketplaces}
+              onChange={(value) => handleFilterChange("marketplaces", value)}
               allowClear
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+              tagRender={({ label, closable, onClose }) => (
+                <Tag
+                  closable={closable}
+                  onClose={onClose}
+                  style={{ marginRight: 3 }}
+                >
+                  {label}
+                </Tag>
+              )}
             >
               {filterOptions.marketplaces.map((mp) => (
                 <Option key={mp} value={mp}>
@@ -290,11 +356,24 @@ const GraficoPreciosMensuales = () => {
           </Col>
         </Row>
 
-        <ReactECharts
-          option={processData()}
-          style={{ height: "600px", width: "100%" }} // Aumentamos un poco la altura
-          theme="light"
-        />
+        {!chartOption ? (
+          <Empty
+            description={
+              filters.productos.length === 0 &&
+              filters.envases.length === 0 &&
+              filters.marketplaces.length === 0
+                ? "Por favor, seleccione al menos un filtro para visualizar los datos"
+                : "No hay datos disponibles con los filtros seleccionados"
+            }
+            style={{ padding: 40 }}
+          />
+        ) : (
+          <ReactECharts
+            option={chartOption}
+            style={{ height: "600px", width: "100%" }}
+            theme="light"
+          />
+        )}
       </Card>
     </div>
   );
