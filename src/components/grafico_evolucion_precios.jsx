@@ -365,7 +365,7 @@ const GraficoPreciosMensuales = () => {
                 ? "Por favor, seleccione al menos un filtro para visualizar los datos"
                 : "No hay datos disponibles con los filtros seleccionados"
             }
-            style={{ padding: 40 }}
+            style={{ padding: 30 }}
           />
         ) : (
           <ReactECharts

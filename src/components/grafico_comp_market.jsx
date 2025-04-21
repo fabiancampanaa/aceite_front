@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import ReactECharts from "echarts-for-react";
-import { Select, Spin, Alert, Button } from "antd";
+import { Select, Spin, Alert, Button, Card } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
 import { getAllBusquedas } from "../api/busquedas.api";
 
@@ -168,79 +168,77 @@ const GraficoComparacionPorMarketplace = () => {
     };
   }, [dataJson, selectedProductos, selectedEnvases]);
 
-  if (loading) return <Spin tip="Cargando datos..." size="large" />;
+  if (loading) return <Spin size="large" />;
   if (error) return <Alert message={error} type="error" showIcon />;
   if (dataJson.length === 0)
     return <Alert message="No hay datos disponibles" type="info" showIcon />;
 
   return (
     <div style={{ padding: "20px" }}>
-      <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
-        Comparación de Precios por Marketplace
-      </h2>
-
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "10px",
-          marginBottom: "20px",
-          alignItems: "center",
-        }}
-      >
-        <Select
-          mode="multiple"
-          style={{ minWidth: "200px", flex: 1 }}
-          placeholder="Seleccione productos"
-          value={selectedProductos}
-          onChange={setSelectedProductos}
-          optionFilterProp="children"
+      <Card title="Comparación de Precios por Marketplace">
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "10px",
+            marginBottom: "20px",
+            alignItems: "center",
+          }}
         >
-          {allProductos.map((producto) => (
-            <Option key={producto} value={producto}>
-              {producto}
-            </Option>
-          ))}
-        </Select>
+          <Select
+            mode="multiple"
+            style={{ minWidth: "200px", flex: 1 }}
+            placeholder="Seleccione productos"
+            value={selectedProductos}
+            onChange={setSelectedProductos}
+            optionFilterProp="children"
+          >
+            {allProductos.map((producto) => (
+              <Option key={producto} value={producto}>
+                {producto}
+              </Option>
+            ))}
+          </Select>
 
-        <Select
-          mode="multiple"
-          style={{ minWidth: "200px", flex: 1 }}
-          placeholder="Seleccione envases"
-          value={selectedEnvases}
-          onChange={setSelectedEnvases}
-          optionFilterProp="children"
-        >
-          {allEnvases.map((envase) => (
-            <Option key={envase} value={envase}>
-              {envase}
-            </Option>
-          ))}
-        </Select>
+          <Select
+            mode="multiple"
+            style={{ minWidth: "200px", flex: 1 }}
+            placeholder="Seleccione envases"
+            value={selectedEnvases}
+            onChange={setSelectedEnvases}
+            optionFilterProp="children"
+          >
+            {allEnvases.map((envase) => (
+              <Option key={envase} value={envase}>
+                {envase}
+              </Option>
+            ))}
+          </Select>
 
-        <Button
-          onClick={handleResetFilters}
-          icon={<ReloadOutlined />}
-          type="default"
-          style={{ flexShrink: 0 }}
-        >
-          Limpiar filtros
-        </Button>
-      </div>
+          <Button
+            onClick={handleResetFilters}
+            icon={<ReloadOutlined />}
+            type="default"
+            style={{ flexShrink: 0 }}
+          >
+            Limpiar filtros
+          </Button>
+        </div>
 
-      {chartOptions ? (
-        <ReactECharts
-          option={chartOptions}
-          style={{ height: "500px", width: "100%" }}
-          theme="light"
-        />
-      ) : (
-        <Alert
-          message="Seleccione al menos un producto y un envase para visualizar el gráfico"
-          type="info"
-          showIcon
-        />
-      )}
+        {chartOptions ? (
+          <ReactECharts
+            option={chartOptions}
+            style={{ height: "500px", width: "100%" }}
+            theme="light"
+          />
+        ) : (
+          <Alert
+            message="Seleccione al menos un producto y un envase para visualizar el gráfico"
+            type="info"
+            showIcon
+          />
+        )}
+      </Card>
     </div>
   );
 };
