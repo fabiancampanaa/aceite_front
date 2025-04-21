@@ -57,15 +57,12 @@ function Dashboard() {
   };
 
   return (
-    <div
-      className="section has-background-white p-4"
-      style={{ minHeight: "100vh" }}
-    >
+    <div className="section p-4" style={{ minHeight: "100vh" }}>
       {/* Header */}
       <div className="level is-mobile">
         <div className="level-left">
           <div>
-            <h1 className="title has-text-primary is-size-4-mobile">
+            <h1 className="title has-text-white is-size-4-mobile">
               Dashboard de Mercado
             </h1>
             <p className="subtitle is-6 has-text-grey-light">
@@ -202,7 +199,7 @@ function Dashboard() {
             <div id="mercado" className="columns is-multiline">
               <div className="column is-6">
                 <div className="box">
-                  <h2 className="title is-5 has-text-grey-dark mb-4">
+                  <h2 className="title is-5 has-text-white mb-4">
                     <span className="icon-text">
                       <span className="icon has-text-info">
                         <i className="fas fa-store"></i>
@@ -216,7 +213,7 @@ function Dashboard() {
 
               <div className="column is-6">
                 <div className="box">
-                  <h2 className="title is-5 has-text-grey-dark mb-4">
+                  <h2 className="title is-5 has-text-white mb-4">
                     <span className="icon-text">
                       <span className="icon has-text-info">
                         <i className="fas fa-balance-scale-right"></i>
@@ -230,7 +227,7 @@ function Dashboard() {
 
               <div className="column is-12">
                 <div className="box">
-                  <h2 className="title is-5 has-text-grey-dark mb-4">
+                  <h2 className="title is-5 has-text-white mb-4">
                     <span className="icon-text">
                       <span className="icon has-text-info">
                         <i className="fas fa-chart-line"></i>
@@ -245,7 +242,7 @@ function Dashboard() {
 
             <div id="rrss" className="column is-full mt-5">
               <div className="box">
-                <h2 className="title is-5 has-text-grey-dark mb-4">
+                <h2 className="title is-5 has-text-white mb-4">
                   <span className="icon-text">
                     <span className="icon has-text-info">
                       <i className="fas fa-hashtag"></i>
