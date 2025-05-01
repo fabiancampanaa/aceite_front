@@ -39,7 +39,6 @@ function Inicio() {
           email: emailRef.current.value,
           password: passwordRef.current.value,
           numero_telefono: numberRef.current.value,
-          nombre_empresa: empresaRef.current.value,
         };
 
         await axios.post("http://localhost:8000/api/register/", userData);
@@ -62,6 +61,7 @@ function Inicio() {
         }
 
         localStorage.setItem("authToken", response.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
 
         // Redirige programáticamente
         navigate("/dashboard", { replace: true });
@@ -143,22 +143,6 @@ function Inicio() {
                     />
                     <span className="icon is-small is-left">
                       <i className="fas fa-phone"></i>
-                    </span>
-                  </div>
-                </div>
-
-                <div className="field">
-                  <label className="label">Empresa</label>
-                  <div className="control has-icons-left">
-                    <input
-                      className="input"
-                      type="text"
-                      placeholder="Ej: Mi Empresa S.A."
-                      ref={empresaRef}
-                      required
-                    />
-                    <span className="icon is-small is-left">
-                      <i className="fas fa-building"></i>
                     </span>
                   </div>
                 </div>
