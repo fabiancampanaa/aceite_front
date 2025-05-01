@@ -39,7 +39,8 @@ function Dashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
-    if (!token) {
+    const user = localStorage.getItem("user");
+    if (!token || user.tipo_acceso != "basico") {
       navigate("/");
       return;
     }
@@ -53,6 +54,7 @@ function Dashboard() {
 
   const cerrarSesion = () => {
     localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
     navigate("/");
   };
 

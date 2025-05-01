@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "bulma/css/bulma.min.css";
 
 const CargarExcel = () => {
@@ -6,11 +7,26 @@ const CargarExcel = () => {
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
+  const navigate = useNavigate(); // Utilizamos useNavigate para redirigir al inicio de sesión
+
+  // Función para cerrar sesión
+  const handleCerrarSesion = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+    navigate("/"); // Redirige al usuario a la página de inicio de sesión
+  };
 
   const handleArchivoChange = (e) => {
-    setArchivo(e.target.files[0]);
+    const selectedFile = e.target.files[0];
+    setArchivo(selectedFile);
     setError("");
     setMensaje("");
+
+    if (selectedFile && selectedFile.size > 10 * 1024 * 1024) {
+      // Limitar el tamaño del archivo a 10MB
+      setError("El archivo es demasiado grande. Máximo 10MB.");
+      setArchivo(null);
+    }
   };
 
   const handleEnviar = async () => {
@@ -67,6 +83,13 @@ const CargarExcel = () => {
 
   return (
     <div className="container mt-5">
+      {/* Botón de Cerrar Sesión */}
+      <div className="field is-grouped is-pulled-right mb-4">
+        <button className="button is-danger" onClick={handleCerrarSesion}>
+          Cerrar sesión
+        </button>
+      </div>
+
       <h2 className="title is-4">Subir archivo Excel</h2>
 
       <div className="file has-name is-boxed mb-4">
@@ -76,12 +99,13 @@ const CargarExcel = () => {
             type="file"
             accept=".xlsx, .xls"
             onChange={handleArchivoChange}
+            aria-describedby="archivoStatus"
           />
           <span className="file-cta">
             <span className="file-icon">📁</span>
             <span className="file-label">Elegir archivo</span>
           </span>
-          <span className="file-name">
+          <span className="file-name" id="archivoStatus">
             {archivo ? archivo.name : "Ningún archivo seleccionado"}
           </span>
         </label>
@@ -91,12 +115,21 @@ const CargarExcel = () => {
         className={`button is-primary ${cargando ? "is-loading" : ""}`}
         onClick={handleEnviar}
         disabled={cargando}
+        aria-live="polite"
       >
         Subir
       </button>
 
-      {mensaje && <div className="notification is-success mt-4">{mensaje}</div>}
-      {error && <div className="notification is-danger mt-4">{error}</div>}
+      {mensaje && (
+        <div className="notification is-success mt-4" aria-live="assertive">
+          {mensaje}
+        </div>
+      )}
+      {error && (
+        <div className="notification is-danger mt-4" aria-live="assertive">
+          {error}
+        </div>
+      )}
     </div>
   );
 };

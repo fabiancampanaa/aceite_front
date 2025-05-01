@@ -8,7 +8,6 @@ function Inicio() {
   const nameRef = useRef(null);
   const emailRef = useRef(null);
   const numberRef = useRef(null);
-  const empresaRef = useRef(null);
   const passwordRef = useRef(null);
   const confirmPasswordRef = useRef(null);
 
@@ -60,11 +59,28 @@ function Inicio() {
           throw new Error("No se recibió token de autenticación");
         }
 
-        localStorage.setItem("authToken", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data.user));
+        const { token, user } = response.data;
+        localStorage.setItem("authToken", token);
+        localStorage.setItem("user", JSON.stringify(user));
 
-        // Redirige programáticamente
-        navigate("/dashboard", { replace: true });
+        const tipoUsuario = user.tipo_usuario;
+
+        // Redirección según tipo de usuario
+        switch (tipoUsuario) {
+          case "admin":
+            navigate("/gestion_usuarios", { replace: true });
+            break;
+          case "superadmin":
+            navigate("/cargar_datos", { replace: true });
+            break;
+          case "basico":
+            navigate("/dashboard", { replace: true });
+            break;
+          default:
+            console.warn("Tipo de usuario desconocido:", tipoUsuario);
+            // Aquí podrías redirigir a una página de error o logout
+            navigate("/", { replace: true });
+        }
       }
     } catch (err) {
       console.error("Error en autenticación:", err);
