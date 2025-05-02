@@ -6,7 +6,8 @@ function GestionUsuarios() {
   const [data, setData] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [accessValues, setAccessValues] = useState({});
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [tipoAcceso, setTipoAcceso] = useState("");
   const navigate = useNavigate();
 
   const fetchData = () => {
@@ -20,12 +21,6 @@ function GestionUsuarios() {
       })
       .then((response) => {
         setData(response.data);
-        // Inicializa los valores del tipo de acceso por usuario
-        const initial = {};
-        response.data.forEach((user) => {
-          initial[user.id] = user.tipo_acceso || "";
-        });
-        setAccessValues(initial);
       })
       .catch((error) => {
         if (error.response && error.response.status === 401) {
@@ -44,21 +39,32 @@ function GestionUsuarios() {
     fetchData();
   }, []);
 
-  const handleAccessChange = (userId, value) => {
-    setAccessValues((prev) => ({
-      ...prev,
-      [userId]: value,
-    }));
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+    navigate("/");
   };
 
-  const updateAccessType = (userId, username) => {
+  const openEditModal = (user) => {
+    console.log(user.id);
+    setSelectedUser(user);
+    setTipoAcceso(user.tipo_acceso || "");
+  };
+
+  const closeModal = () => {
+    setSelectedUser(null);
+    setTipoAcceso("");
+  };
+
+  const handleSubmit = () => {
+    if (!selectedUser) return;
+    console.log("Usuario seleccionado:", selectedUser); // 👈 Verifica esto
     const token = localStorage.getItem("authToken");
-    const tipo_acceso = accessValues[userId];
 
     axios
       .patch(
-        `http://127.0.0.1:8000/api/v1/users/${userId}/`,
-        { tipo_acceso },
+        `http://127.0.0.1:8000/api/v1/users/${selectedUser.id}/`,
+        { tipo_acceso: tipoAcceso },
         {
           headers: {
             Authorization: `Token ${token}`,
@@ -66,16 +72,12 @@ function GestionUsuarios() {
         }
       )
       .then(() => {
-        alert(`Tipo de acceso actualizado para ${username}`);
+        fetchData(); // Refresca la tabla
+        closeModal();
       })
       .catch(() => {
-        alert(`Error al actualizar el tipo de acceso de ${username}`);
+        alert("Error al actualizar el usuario.");
       });
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    navigate("/"); // Redirige al inicio (puedes cambiar esto a otra ruta si prefieres)
   };
 
   return (
@@ -113,37 +115,71 @@ function GestionUsuarios() {
                 <tr key={user.id}>
                   <td>{user.username}</td>
                   <td>{user.email}</td>
-                  <td>
-                    <div className="select is-small">
-                      <select
-                        value={accessValues[user.id] ?? ""}
-                        onChange={(e) =>
-                          handleAccessChange(user.id, e.target.value)
-                        }
-                      >
-                        <option key={`${user.id}-default`} value="">
-                          Seleccione
-                        </option>
-                        {["General", "Exclusivo"].map((tipo) => (
-                          <option key={`${user.id}-${tipo}`} value={tipo}>
-                            {tipo}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </td>
+                  <td>{user.tipo_acceso || "Sin definir"}</td>
                   <td>
                     <button
-                      className="button is-info is-small"
-                      onClick={() => updateAccessType(user.id, user.username)}
+                      className="button is-warning is-small"
+                      onClick={() => openEditModal(user)}
                     >
-                      Actualizar
+                      Editar
                     </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        )}
+
+        {selectedUser && (
+          <div className="modal is-active">
+            <div className="modal-background" onClick={closeModal}></div>
+            <div className="modal-card">
+              <header className="modal-card-head">
+                <p className="modal-card-title">Editar Usuario</p>
+                <button
+                  className="delete"
+                  aria-label="close"
+                  onClick={closeModal}
+                ></button>
+              </header>
+              <section className="modal-card-body">
+                <div className="field">
+                  <label className="label">Usuario</label>
+                  <div className="control">
+                    <input
+                      className="input"
+                      type="text"
+                      value={selectedUser.username}
+                      disabled
+                    />
+                  </div>
+                </div>
+                <div className="field">
+                  <label className="label">Tipo de acceso</label>
+                  <div className="control">
+                    <div className="select is-fullwidth">
+                      <select
+                        value={tipoAcceso}
+                        onChange={(e) => setTipoAcceso(e.target.value)}
+                      >
+                        <option value="">Seleccione</option>
+                        <option value="General">General</option>
+                        <option value="Exclusivo">Exclusivo</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <footer className="modal-card-foot">
+                <button className="button is-success" onClick={handleSubmit}>
+                  Guardar cambios
+                </button>
+                <button className="button" onClick={closeModal}>
+                  Cancelar
+                </button>
+              </footer>
+            </div>
+          </div>
         )}
       </div>
     </div>

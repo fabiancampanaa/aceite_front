@@ -39,8 +39,7 @@ function Dashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
-    const user = localStorage.getItem("user");
-    if (!token || user.tipo_acceso != "basico") {
+    if (!token) {
       navigate("/");
       return;
     }
