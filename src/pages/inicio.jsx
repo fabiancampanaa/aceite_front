@@ -2,8 +2,10 @@ import React, { useRef, useState } from "react";
 import axios from "axios";
 import "bulma/css/bulma.min.css";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 function Inicio() {
+  const { login } = useAuth();
   const navigate = useNavigate();
   const nameRef = useRef(null);
   const emailRef = useRef(null);
@@ -47,7 +49,7 @@ function Inicio() {
           setShowSuccess(false);
           setIsRegistering(false);
           resetForm();
-        }, 3000);
+        }, 1000);
       } else {
         const response = await axios.post("http://localhost:8000/api/login/", {
           email: emailRef.current.value,
@@ -60,25 +62,23 @@ function Inicio() {
         }
 
         const { token, user } = response.data;
-        localStorage.setItem("authToken", token);
-        localStorage.setItem("user", JSON.stringify(user));
+        login(user, token);
 
         const tipoUsuario = user.tipo_usuario;
 
         // Redirección según tipo de usuario
         switch (tipoUsuario) {
           case "admin":
-            navigate("/gestion_usuarios", { replace: true });
+            navigate("/gestion_usuarios");
             break;
           case "superadmin":
-            navigate("/cargar_datos", { replace: true });
+            navigate("/cargar_datos");
             break;
           case "basico":
-            navigate("/dashboard", { replace: true });
+            navigate("/dashboard");
             break;
           default:
             console.warn("Tipo de usuario desconocido:", tipoUsuario);
-            // Aquí podrías redirigir a una página de error o logout
             navigate("/", { replace: true });
         }
       }
