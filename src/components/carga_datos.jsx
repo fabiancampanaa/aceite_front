@@ -1,113 +1,184 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
+import "bulma/css/bulma.min.css";
 
-function CargarExcel() {
-  const [archivo, setArchivo] = useState(null);
-  const [mensaje, setMensaje] = useState("");
-  const [error, setError] = useState("");
-  const [cargando, setCargando] = useState(false);
+const CargarExcel = () => {
+  const [archivo1, setArchivo1] = useState(null);
+  const [archivo2, setArchivo2] = useState(null);
+  const [mensaje1, setMensaje1] = useState("");
+  const [mensaje2, setMensaje2] = useState("");
+  const [error1, setError1] = useState("");
+  const [error2, setError2] = useState("");
+  const [cargando1, setCargando1] = useState(false);
+  const [cargando2, setCargando2] = useState(false);
 
-  const user = JSON.parse(localStorage.getItem("user"));
-  console.log(user);
+  const input1Ref = useRef(null);
+  const input2Ref = useRef(null);
 
-  const handleCerrarSesion = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("user");
-    window.location.href = "/";
-  };
+  const tipoValido = [
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-excel",
+  ];
 
-  const handleArchivoChange = (e) => {
-    setArchivo(e.target.files[0]);
-    setMensaje("");
+  const handleArchivoChange = (e, setArchivo, setError, setMensaje) => {
+    const file = e.target.files[0];
+    if (file && !tipoValido.includes(file.type)) {
+      setError("Tipo de archivo no válido. Solo .xls o .xlsx.");
+      setMensaje("");
+      return;
+    }
+    setArchivo(file);
     setError("");
+    setMensaje("");
   };
 
-  const handleEnviar = () => {
-    if (!archivo) {
-      setError("Debes seleccionar un archivo.");
+  const subirArchivo = async (
+    archivo,
+    setCargando,
+    setMensaje,
+    setError,
+    inputRef,
+    nombreCampo
+  ) => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      setError("No se encontró el token de autenticación.");
       return;
     }
 
-    setCargando(true);
-    setMensaje("");
-    setError("");
+    if (!archivo) {
+      setError("Por favor selecciona un archivo.");
+      return;
+    }
 
-    // Aquí va tu lógica para subir el archivo
-    setTimeout(() => {
-      setMensaje("Archivo subido correctamente.");
+    const formData = new FormData();
+    formData.append(nombreCampo, archivo);
+
+    setCargando(true);
+    try {
+      const respuesta = await fetch(
+        `http://localhost:8000/api/${nombreCampo}/`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      const data = await respuesta.json();
+
+      if (respuesta.ok) {
+        setMensaje(data.mensaje || "Archivo cargado correctamente.");
+        setError("");
+        if (inputRef.current) inputRef.current.value = null;
+      } else {
+        setError(data.error || "Ocurrió un error.");
+        setMensaje("");
+      }
+    } catch (err) {
+      setError("Error de red o del servidor.");
+      setMensaje("");
+    } finally {
       setCargando(false);
-    }, 2000);
+    }
   };
 
   return (
-    <>
-      {/* NAVBAR */}
-      <nav
-        className="navbar is-primary"
-        role="navigation"
-        aria-label="main navigation"
-      >
-        <div className="navbar-brand">
-          <span className="navbar-item has-text-weight-semibold">
-            Bienvenido, {user.username}
-          </span>
+    <div className="container mt-5">
+      <h2 className="title is-4">Cargar archivos Excel (independientes)</h2>
+
+      {/* Archivo 1 */}
+      <div className="box">
+        <p className="subtitle is-6">Archivo principal</p>
+        <div className="file has-name is-boxed mb-2">
+          <label className="file-label">
+            <input
+              ref={input1Ref}
+              className="file-input"
+              type="file"
+              accept=".xlsx, .xls"
+              onChange={(e) =>
+                handleArchivoChange(e, setArchivo1, setError1, setMensaje1)
+              }
+            />
+            <span className="file-cta">
+              <span className="file-icon">📁</span>
+              <span className="file-label">Elegir archivo</span>
+            </span>
+            <span className="file-name">
+              {archivo1 ? archivo1.name : "Ningún archivo seleccionado"}
+            </span>
+          </label>
         </div>
-        <div className="navbar-end pr-4">
-          <div className="navbar-item">
-            <button className="button is-danger" onClick={handleCerrarSesion}>
-              Cerrar sesión
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      {/* FORMULARIO CENTRADO */}
-      <div className="section">
-        <div className="container">
-          <div className="box" style={{ maxWidth: "500px", margin: "0 auto" }}>
-            <h2 className="title is-3 has-text-centered">
-              Carga de datos a BD
-            </h2>
-
-            <div className="file has-name is-boxed is-fullwidth mb-5">
-              <label className="file-label">
-                <input
-                  className="file-input"
-                  type="file"
-                  accept=".xlsx, .xls"
-                  onChange={handleArchivoChange}
-                  aria-describedby="archivoStatus"
-                />
-                <span className="file-cta">
-                  <span className="file-icon">📁</span>
-                  <span className="file-label">Elegir archivo</span>
-                </span>
-                <span className="file-name" id="archivoStatus">
-                  {archivo ? archivo.name : "Ningún archivo seleccionado"}
-                </span>
-              </label>
-            </div>
-
-            <div className="has-text-centered">
-              <button
-                className={`button is-primary ${cargando ? "is-loading" : ""}`}
-                onClick={handleEnviar}
-                disabled={cargando}
-              >
-                Subir
-              </button>
-            </div>
-
-            {mensaje && (
-              <div className="notification is-success mt-4">{mensaje}</div>
-            )}
-            {error && (
-              <div className="notification is-danger mt-4">{error}</div>
-            )}
-          </div>
-        </div>
+        <button
+          className={`button is-link ${cargando1 ? "is-loading" : ""}`}
+          onClick={() =>
+            subirArchivo(
+              archivo1,
+              setCargando1,
+              setMensaje1,
+              setError1,
+              input1Ref,
+              "archivo1"
+            )
+          }
+          disabled={cargando1}
+        >
+          Subir archivo principal
+        </button>
+        {mensaje1 && (
+          <div className="notification is-success mt-3">{mensaje1}</div>
+        )}
+        {error1 && <div className="notification is-danger mt-3">{error1}</div>}
       </div>
-    </>
+
+      {/* Archivo 2 */}
+      <div className="box">
+        <p className="subtitle is-6">Archivo RRSS</p>
+        <div className="file has-name is-boxed mb-2">
+          <label className="file-label">
+            <input
+              ref={input2Ref}
+              className="file-input"
+              type="file"
+              accept=".xlsx, .xls"
+              onChange={(e) =>
+                handleArchivoChange(e, setArchivo2, setError2, setMensaje2)
+              }
+            />
+            <span className="file-cta">
+              <span className="file-icon">📁</span>
+              <span className="file-label">Elegir archivo</span>
+            </span>
+            <span className="file-name">
+              {archivo2 ? archivo2.name : "Ningún archivo seleccionado"}
+            </span>
+          </label>
+        </div>
+        <button
+          className={`button is-info ${cargando2 ? "is-loading" : ""}`}
+          onClick={() =>
+            subirArchivo(
+              archivo2,
+              setCargando2,
+              setMensaje2,
+              setError2,
+              input2Ref,
+              "archivo2"
+            )
+          }
+          disabled={cargando2}
+        >
+          Subir archivo auxiliar
+        </button>
+        {mensaje2 && (
+          <div className="notification is-success mt-3">{mensaje2}</div>
+        )}
+        {error2 && <div className="notification is-danger mt-3">{error2}</div>}
+      </div>
+    </div>
   );
-}
+};
 
 export default CargarExcel;
