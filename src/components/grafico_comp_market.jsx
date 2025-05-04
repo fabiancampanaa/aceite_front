@@ -1,34 +1,58 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import ReactECharts from "echarts-for-react";
-import { Select, Spin, Alert, Button, Card } from "antd";
-import { ReloadOutlined } from "@ant-design/icons";
 import { getAllBusquedas } from "../api/busquedas.api";
 
-const { Option } = Select;
-
-const GraficoComparacionPorMarketplace = () => {
+const GraficoPrecioAceitePorMarketplace = () => {
   const [dataJson, setDataJson] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const [allProductos, setAllProductos] = useState([]);
-  const [selectedProductos, setSelectedProductos] = useState([]);
-
-  const [allEnvases, setAllEnvases] = useState([]);
-  const [selectedEnvases, setSelectedEnvases] = useState([]);
+  const [mesSeleccionado, setMesSeleccionado] = useState("");
+  const [mesesDisponibles, setMesesDisponibles] = useState([]);
+  const [modoFecha, setModoFecha] = useState("mes"); // "mes" o "año"
+  const [tipoEnvaseSeleccionado, setTipoEnvaseSeleccionado] = useState("");
+  const [tiposEnvaseDisponibles, setTiposEnvaseDisponibles] = useState([]);
 
   useEffect(() => {
     async function cargarBusquedas() {
       try {
         const res = await getAllBusquedas();
-        const data = res.data;
-        setDataJson(data);
+        setDataJson(res.data);
+        const años = Array.from(
+          new Set(
+            res.data
+              .map((item) => {
+                const año = item.fecha_extraccion
+                  ? item.fecha_extraccion.slice(0, 4)
+                  : null;
+                //console.log("Año extraído:", año); // Verificar si se extrae correctamente
+                return año;
+              })
+              .filter((a) => a !== null)
+          )
+        ).sort((a, b) => b.localeCompare(a));
+        // Extraer meses únicos del campo fecha_extraccion
+        const meses = Array.from(
+          new Set(
+            res.data
+              .map((item) => {
+                const mes = item.fecha_extraccion
+                  ? item.fecha_extraccion.slice(0, 7)
+                  : null;
+                //console.log("Mes extraído:", mes); // Verificar si se extrae correctamente
+                return mes;
+              })
+              .filter((m) => m !== null)
+          )
+        ).sort((a, b) => b.localeCompare(a));
 
-        const uniqueProductos = [...new Set(data.map((item) => item.producto))];
-        const uniqueEnvases = [...new Set(data.map((item) => item.envase))];
+        const tiposEnvase = Array.from(
+          new Set(res.data.map((item) => item.envase).filter((tipo) => tipo))
+        );
 
-        setAllProductos(uniqueProductos);
-        setAllEnvases(uniqueEnvases);
+        setTiposEnvaseDisponibles(tiposEnvase);
+
+        setMesesDisponibles([...meses, ...años]);
+        if (meses.length > 0) setMesSeleccionado(meses[0]); // Por defecto: el más reciente
       } catch (err) {
         setError("Error al cargar los datos");
         console.error(err);
@@ -36,211 +60,178 @@ const GraficoComparacionPorMarketplace = () => {
         setLoading(false);
       }
     }
+
     cargarBusquedas();
   }, []);
 
-  const handleResetFilters = () => {
-    setSelectedProductos([]);
-    setSelectedEnvases([]);
-  };
+  const procesarDatos = (data) => {
+    const datosFiltrados = data.filter((item) => {
+      // Verificar si tiene precio
+      const tienePrecio = item.precio_litro !== null && item.precio_litro > 0;
 
-  const colors = [
-    "#5470C6",
-    "#91CC75",
-    "#EE6666",
-    "#FAC858",
-    "#73C0DE",
-    "#3BA272",
-    "#FC8452",
-    "#9A60B4",
-  ];
+      // Verificar si la fecha pertenece al mes o año seleccionado
+      const perteneceAFecha =
+        item.fecha_extraccion &&
+        (modoFecha === "mes"
+          ? item.fecha_extraccion.startsWith(mesSeleccionado) // Mes completo (YYYY-MM)
+          : item.fecha_extraccion.startsWith(mesSeleccionado.slice(0, 4))); // Año (YYYY)
+      const perteneceATipoEnvase =
+        tipoEnvaseSeleccionado === "" || item.envase === tipoEnvaseSeleccionado;
+      // Depuración
+      console.log("Item:", item); // Ver cada item que pasa por el filtro
+      console.log("Precio Litro:", item.precio_litro); // Verificar precio
+      console.log("Fecha Extracción:", item.fecha_extraccion); // Verificar fecha
+      console.log("Mes Seleccionado:", mesSeleccionado); // Ver mes seleccionado
+      console.log("Tiene Precio:", tienePrecio); // Ver si tiene precio
+      console.log("Pertenece a Fecha:", perteneceAFecha); // Ver si cumple la fecha
 
-  const chartOptions = useMemo(() => {
-    if (
-      !dataJson.length ||
-      !selectedProductos.length ||
-      !selectedEnvases.length
-    )
-      return null;
+      return tienePrecio && perteneceAFecha && perteneceATipoEnvase; // Solo retorna el item si tiene precio y pertenece a la fecha
+    });
 
-    const filteredData = dataJson.filter(
-      (item) =>
-        selectedProductos.includes(item.producto) &&
-        selectedEnvases.includes(item.envase)
+    console.log("Datos Filtrados:", datosFiltrados); // Ver los datos filtrados al final
+    const preciosPorUrl = {};
+    datosFiltrados.forEach((item) => {
+      const url = item.identificacion_url;
+      if (!preciosPorUrl[url]) preciosPorUrl[url] = [];
+      preciosPorUrl[url].push(parseFloat(item.precio_litro));
+    });
+    const promedioPorUrl = Object.entries(preciosPorUrl).map(
+      ([url, precios]) => ({
+        url,
+        promedio: precios.reduce((a, b) => a + b, 0) / precios.length,
+      })
     );
-
-    const groupedData = {};
-    const marketplacesSet = new Set();
-
-    filteredData.forEach((item) => {
-      const marketplace = item.identificacion_url;
-      marketplacesSet.add(marketplace);
-
-      if (!groupedData[item.producto]) {
-        groupedData[item.producto] = {};
-      }
-
-      if (!groupedData[item.producto][marketplace]) {
-        groupedData[item.producto][marketplace] = [];
-      }
-
-      groupedData[item.producto][marketplace].push(item.valor);
-    });
-
-    const marketplaces = [...marketplacesSet].sort();
-
-    const series = selectedProductos.map((producto, index) => {
-      const data = marketplaces.map((market) => {
-        const prices = groupedData[producto]?.[market] || [];
-        return prices.length
-          ? Math.round(prices.reduce((sum, p) => sum + p, 0) / prices.length)
-          : null;
-      });
-
-      return {
-        name: producto,
-        type: "bar",
-        data,
-        barWidth: 40,
-        itemStyle: {
-          color: colors[index % colors.length],
-        },
-        label: {
-          show: true,
-          position: "top",
-          formatter: (params) =>
-            params.value ? `$${params.value.toLocaleString("es-CL")}` : "",
-        },
-      };
-    });
-
+    promedioPorUrl.sort((a, b) => a.promedio - b.promedio);
+    console.log("Datos filtrados:", datosFiltrados);
     return {
       tooltip: {
-        trigger: "axis",
-        axisPointer: { type: "shadow" },
-        formatter: (params) => {
-          let tooltip = `<div><strong>${params[0].axisValue}</strong></div>`;
-          params.forEach((param) => {
-            if (param.value != null) {
-              tooltip += `
-                <div style="display:flex;align-items:center;margin-top:4px">
-                  <span style="display:inline-block;width:10px;height:10px;background:${
-                    param.color
-                  };margin-right:5px;border-radius:50%"></span>
-                  ${param.seriesName}: <strong>$${param.value.toLocaleString(
-                "es-CL"
-              )}</strong>
-                </div>
-              `;
-            }
-          });
-          return tooltip;
-        },
-      },
-      legend: {
-        data: selectedProductos,
-        bottom: 10,
+        trigger: "item",
+        formatter: (params) => `
+          <strong>${params.name}</strong><br/>
+          Precio promedio por litro: $${params.value.toFixed(2)}
+        `,
       },
       grid: {
-        left: "3%",
+        left: "20%",
         right: "4%",
-        bottom: "18%",
+        bottom: "3%",
+        top: "10%",
         containLabel: true,
       },
       xAxis: {
-        type: "category",
-        data: marketplaces,
-        name: "Marketplace",
+        type: "value",
+        name: "Precio por litro (sin IVA)",
         nameLocation: "middle",
         nameGap: 25,
       },
       yAxis: {
-        type: "value",
-        name: "Precio (CLP)",
-        nameLocation: "middle",
-        nameGap: 60,
-        axisLabel: {
-          formatter: (value) => `$${Math.round(value).toLocaleString("es-CL")}`,
-        },
+        type: "category",
+        data: promedioPorUrl.map((item) =>
+          item.url.length > 30 ? item.url.slice(0, 27) + "..." : item.url
+        ),
       },
-      series,
-      color: colors,
+      series: [
+        {
+          type: "bar",
+          name: "Precio por litro",
+          data: promedioPorUrl.map((item) => ({
+            value: item.promedio,
+            name: item.url,
+          })),
+          itemStyle: {
+            color: "#5470C6",
+          },
+          label: {
+            show: true,
+            position: "right",
+            formatter: (params) => `$${params.value.toFixed(2)}`,
+          },
+        },
+      ],
     };
-  }, [dataJson, selectedProductos, selectedEnvases]);
+  };
 
-  if (loading) return <Spin size="large" />;
-  if (error) return <Alert message={error} type="error" showIcon />;
-  if (dataJson.length === 0)
-    return <Alert message="No hay datos disponibles" type="info" showIcon />;
-
+  if (loading) return <div>Cargando datos...</div>;
+  if (error) return <div>{error}</div>;
+  if (!mesSeleccionado) return <div>No hay meses disponibles.</div>;
   return (
-    <div style={{ padding: "20px" }}>
-      <Card title="Comparación de Precios por Marketplace">
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "10px",
-            marginBottom: "20px",
-            alignItems: "center",
-          }}
+    <div style={{ padding: "30px" }}>
+      <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
+        Precio Promedio por Litro de Aceite
+      </h2>
+
+      {/* Selector de mes */}
+      <div style={{ textAlign: "center", marginBottom: "20px" }}>
+        <label htmlFor="modoFecha" style={{ marginRight: "10px" }}>
+          Ver por:
+        </label>
+        <select
+          id="modoFecha"
+          value={modoFecha}
+          onChange={(e) => setModoFecha(e.target.value)}
+          style={{ marginRight: "20px" }}
         >
-          <Select
-            mode="multiple"
-            style={{ minWidth: "200px", flex: 1 }}
-            placeholder="Seleccione productos"
-            value={selectedProductos}
-            onChange={setSelectedProductos}
-            optionFilterProp="children"
-          >
-            {allProductos.map((producto) => (
-              <Option key={producto} value={producto}>
-                {producto}
-              </Option>
-            ))}
-          </Select>
+          <option value="mes">Mes</option>
+          <option value="año">Año</option>
+        </select>
 
-          <Select
-            mode="multiple"
-            style={{ minWidth: "200px", flex: 1 }}
-            placeholder="Seleccione envases"
-            value={selectedEnvases}
-            onChange={setSelectedEnvases}
-            optionFilterProp="children"
+        <select
+          id="selectorMes"
+          value={mesSeleccionado}
+          onChange={(e) => setMesSeleccionado(e.target.value)}
+        >
+          {mesesDisponibles
+            .filter((val) =>
+              modoFecha === "mes" ? val.length === 7 : val.length === 4
+            )
+            .map((val) => {
+              if (modoFecha === "mes") {
+                const [year, month] = val.split("-");
+                const date = new Date(year, parseInt(month) - 1);
+                const nombreMes = new Intl.DateTimeFormat("es-ES", {
+                  month: "long",
+                  year: "numeric",
+                }).format(date);
+                return (
+                  <option key={val} value={val}>
+                    {nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)}
+                  </option>
+                );
+              } else {
+                return (
+                  <option key={val} value={val}>
+                    {val}
+                  </option>
+                );
+              }
+            })}
+        </select>
+        <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          <label htmlFor="tipoEnvase" style={{ marginRight: "10px" }}>
+            Tipo de envase:
+          </label>
+          <select
+            id="tipoEnvase"
+            value={tipoEnvaseSeleccionado}
+            onChange={(e) => setTipoEnvaseSeleccionado(e.target.value)}
           >
-            {allEnvases.map((envase) => (
-              <Option key={envase} value={envase}>
-                {envase}
-              </Option>
+            <option value="">Todos</option>
+            {tiposEnvaseDisponibles.map((tipo, index) => (
+              <option key={index} value={tipo}>
+                {tipo.charAt(0).toUpperCase() + tipo.slice(1)}
+              </option>
             ))}
-          </Select>
-
-          <Button
-            onClick={handleResetFilters}
-            icon={<ReloadOutlined />}
-            type="default"
-            style={{ flexShrink: 0 }}
-          >
-            Limpiar filtros
-          </Button>
+          </select>
         </div>
+      </div>
 
-        {chartOptions ? (
-          <ReactECharts
-            option={chartOptions}
-            style={{ height: "500px", width: "100%" }}
-            theme="light"
-          />
-        ) : (
-          <Alert
-            message="Seleccione al menos un producto y un envase para visualizar el gráfico"
-            type="info"
-            showIcon
-          />
-        )}
-      </Card>
+      <ReactECharts
+        option={procesarDatos(dataJson)}
+        style={{ height: "600px", width: "100%" }}
+        theme="light"
+      />
     </div>
   );
 };
 
-export default GraficoComparacionPorMarketplace;
+export default GraficoPrecioAceitePorMarketplace;

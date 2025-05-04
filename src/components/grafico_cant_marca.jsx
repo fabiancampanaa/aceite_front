@@ -22,7 +22,6 @@ const GraficoPorMarketplace = () => {
     cargarBusquedas();
   }, []);
 
-  // Colores para las barras
   const colors = [
     "#5470C6",
     "#91CC75",
@@ -34,14 +33,10 @@ const GraficoPorMarketplace = () => {
     "#9A60B4",
   ];
 
-  // Procesar los datos para el gráfico
-  const processData = (data) => {
-    // Filtrar datos donde identificacion_url no esté vacío
+  const procesarDatosParaGrafico = (data) => {
     const datosFiltrados = data.filter(
       (item) => item.identificacion_url && item.identificacion_url.trim() !== ""
     );
-
-    // Objeto para contar marcas por URL
     const marcasPorUrl = {};
 
     datosFiltrados.forEach((item) => {
@@ -51,28 +46,23 @@ const GraficoPorMarketplace = () => {
       marcasPorUrl[item.identificacion_url].add(item.marca);
     });
 
-    // Convertir a formato para el gráfico
     const urls = Object.keys(marcasPorUrl);
     const conteoDatos = urls.map((url) => ({
       url,
       cantidad: marcasPorUrl[url].size,
     }));
 
-    // Ordenar de mayor a menor cantidad
     conteoDatos.sort((a, b) => b.cantidad - a.cantidad);
 
-    // Tomar solo los primeros 20 para mejor visualización
     const datosMostrar = conteoDatos.slice(0, 20);
 
     return {
       tooltip: {
         trigger: "item",
-        formatter: (params) => {
-          return `
-            <strong>${params.name}</strong><br/>
-            Marcas distintas: ${params.value}<br/>
-          `;
-        },
+        formatter: (params) => `
+          <strong>${params.name}</strong><br/>
+          Marcas distintas: ${params.value}
+        `,
       },
       grid: {
         left: "20%",
@@ -91,13 +81,8 @@ const GraficoPorMarketplace = () => {
         type: "category",
         data: datosMostrar.map((item) => item.url),
         axisLabel: {
-          formatter: (value) => {
-            // Acortar URLs largas para mejor visualización
-            if (value.length > 30) {
-              return value.substring(0, 27) + "...";
-            }
-            return value;
-          },
+          formatter: (value) =>
+            value.length > 30 ? value.substring(0, 27) + "..." : value,
         },
       },
       series: [
@@ -133,22 +118,36 @@ const GraficoPorMarketplace = () => {
   if (error) return <div>{error}</div>;
   if (dataJson.length === 0) return <div>No hay datos disponibles</div>;
 
-  // Contar cuántos registros fueron filtrados
   const datosFiltrados = dataJson.filter(
     (item) => item.identificacion_url && item.identificacion_url.trim() !== ""
   );
   const registrosFiltrados = dataJson.length - datosFiltrados.length;
 
   return (
-    <div style={{ padding: "30px" }}>
+    <div
+      style={{ padding: "30px" }}
+      aria-label="Gráfico de productos por marketplace"
+    >
       <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
-        Cantidad de Productos por marketplace
+        Cantidad de Productos por Marketplace
       </h2>
       <ReactECharts
-        option={processData(dataJson)}
+        option={procesarDatosParaGrafico(dataJson)}
         style={{ height: "600px", width: "100%" }}
         theme="light"
       />
+      {registrosFiltrados > 0 && (
+        <p
+          style={{
+            textAlign: "center",
+            fontStyle: "italic",
+            marginTop: "10px",
+          }}
+        >
+          {registrosFiltrados} registros fueron omitidos por no tener
+          identificación de URL.
+        </p>
+      )}
     </div>
   );
 };
