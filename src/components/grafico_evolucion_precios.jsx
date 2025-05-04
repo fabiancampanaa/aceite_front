@@ -31,9 +31,10 @@ const GraficoPreciosMensuales = () => {
         const res = await getAllBusquedas();
         setData(res.data);
 
+        // Opciones generales para todos los filtros
         const productos = [
-          ...new Set(res.data.map((item) => item.producto)),
-        ].filter(Boolean);
+          ...new Set(res.data.map((item) => item.producto.toUpperCase())),
+        ].filter(Boolean); // Normaliza a mayúsculas
         const envases = [
           ...new Set(res.data.map((item) => item.envase)),
         ].filter(Boolean);
@@ -56,6 +57,36 @@ const GraficoPreciosMensuales = () => {
     fetchData();
   }, []);
 
+  // Actualizar las opciones de los filtros basados en los filtros seleccionados
+  useEffect(() => {
+    const filteredEnvases = new Set();
+    const filteredMarketplaces = new Set();
+    const filteredProductos = new Set();
+
+    // Filtrar los envases, marketplaces y productos según los filtros seleccionados
+    data.forEach((item) => {
+      if (
+        (filters.productos.length === 0 ||
+          filters.productos.includes(item.producto.toUpperCase())) &&
+        (filters.envases.length === 0 ||
+          filters.envases.includes(item.envase)) &&
+        (filters.marketplaces.length === 0 ||
+          filters.marketplaces.includes(item.identificacion_url))
+      ) {
+        filteredEnvases.add(item.envase);
+        filteredMarketplaces.add(item.identificacion_url);
+        filteredProductos.add(item.producto.toUpperCase()); // Normaliza el producto a mayúsculas
+      }
+    });
+
+    // Actualizar las opciones de filtros
+    setFilterOptions((prevOptions) => ({
+      productos: Array.from(filteredProductos),
+      envases: Array.from(filteredEnvases),
+      marketplaces: Array.from(filteredMarketplaces),
+    }));
+  }, [filters, data]);
+
   const handleFilterChange = (filterName, value) => {
     setFilters((prev) => ({ ...prev, [filterName]: value }));
   };
@@ -72,7 +103,7 @@ const GraficoPreciosMensuales = () => {
     return data.filter((item) => {
       return (
         (filters.productos.length === 0 ||
-          filters.productos.includes(item.producto)) &&
+          filters.productos.includes(item.producto.toUpperCase())) &&
         (filters.envases.length === 0 ||
           filters.envases.includes(item.envase)) &&
         (filters.marketplaces.length === 0 ||
@@ -82,7 +113,6 @@ const GraficoPreciosMensuales = () => {
   }, [data, filters]);
 
   const processData = () => {
-    // No mostrar gráfico si no hay filtros aplicados
     if (
       filters.productos.length === 0 &&
       filters.envases.length === 0 &&
@@ -91,12 +121,10 @@ const GraficoPreciosMensuales = () => {
       return null;
     }
 
-    // No mostrar gráfico si no hay datos después del filtrado
     if (filteredData.length === 0) {
       return null;
     }
 
-    // Procesamiento de datos para el gráfico
     const monthlyData = {};
 
     filteredData.forEach((item) => {
@@ -268,9 +296,9 @@ const GraficoPreciosMensuales = () => {
             <Select
               mode="multiple"
               style={{ width: "100%" }}
-              placeholder="Filtrar por producto(s)"
-              value={filters.productos}
-              onChange={(value) => handleFilterChange("productos", value)}
+              placeholder="Filtrar por marketplace(s)"
+              value={filters.marketplaces}
+              onChange={(value) => handleFilterChange("marketplaces", value)}
               allowClear
               showSearch
               optionFilterProp="children"
@@ -287,9 +315,9 @@ const GraficoPreciosMensuales = () => {
                 </Tag>
               )}
             >
-              {filterOptions.productos.map((producto) => (
-                <Option key={producto} value={producto}>
-                  {producto}
+              {filterOptions.marketplaces.map((mp) => (
+                <Option key={mp} value={mp}>
+                  {mp}
                 </Option>
               ))}
             </Select>
@@ -324,13 +352,14 @@ const GraficoPreciosMensuales = () => {
               ))}
             </Select>
           </Col>
+
           <Col span={8}>
             <Select
               mode="multiple"
               style={{ width: "100%" }}
-              placeholder="Filtrar por marketplace(s)"
-              value={filters.marketplaces}
-              onChange={(value) => handleFilterChange("marketplaces", value)}
+              placeholder="Filtrar por producto(s)"
+              value={filters.productos}
+              onChange={(value) => handleFilterChange("productos", value)}
               allowClear
               showSearch
               optionFilterProp="children"
@@ -347,9 +376,9 @@ const GraficoPreciosMensuales = () => {
                 </Tag>
               )}
             >
-              {filterOptions.marketplaces.map((mp) => (
-                <Option key={mp} value={mp}>
-                  {mp}
+              {filterOptions.productos.map((producto) => (
+                <Option key={producto} value={producto}>
+                  {producto}
                 </Option>
               ))}
             </Select>

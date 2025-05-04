@@ -149,7 +149,10 @@ const GraficoPrecioAceitePorMarketplaceExclusivo = () => {
           label: {
             show: true,
             position: "right",
-            formatter: (params) => `$${params.value.toFixed(2)}`,
+            fontSize: 13, // Tamaño de la fuente para las etiquetas dentro de las barras
+            color: "#fff", // Color de la etiqueta
+            fontWeight: "bold", // Hacer la etiqueta en negrita
+            formatter: (params) => `$${params.value.toFixed(0)}`,
           },
         },
       ],
