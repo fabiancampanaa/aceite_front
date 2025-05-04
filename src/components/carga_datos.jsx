@@ -86,11 +86,11 @@ const CargarExcel = () => {
 
   return (
     <div className="container mt-5">
-      <h2 className="title is-4">Cargar archivos Excel (independientes)</h2>
+      <h2 className="title is-4">Cargar archivos extracción BOT</h2>
 
       {/* Archivo 1 */}
       <div className="box">
-        <p className="subtitle is-6">Archivo principal</p>
+        <p className="subtitle is-6">Archivo Busquedas</p>
         <div className="file has-name is-boxed mb-2">
           <label className="file-label">
             <input
@@ -125,7 +125,7 @@ const CargarExcel = () => {
           }
           disabled={cargando1}
         >
-          Subir archivo principal
+          Subir archivo busquedas
         </button>
         {mensaje1 && (
           <div className="notification is-success mt-3">{mensaje1}</div>
@@ -170,7 +170,7 @@ const CargarExcel = () => {
           }
           disabled={cargando2}
         >
-          Subir archivo auxiliar
+          Subir archivo RRSS
         </button>
         {mensaje2 && (
           <div className="notification is-success mt-3">{mensaje2}</div>
