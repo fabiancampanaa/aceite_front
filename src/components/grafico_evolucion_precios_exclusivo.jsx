@@ -9,7 +9,7 @@ const { Option } = Select;
 
 moment.locale("es");
 
-const GraficoPreciosMensuales = () => {
+const GraficoPreciosMensualesExclusivo = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,12 +17,14 @@ const GraficoPreciosMensuales = () => {
     productos: [],
     envases: [],
     marketplaces: [],
+    marcas: [],
   });
 
   const [filterOptions, setFilterOptions] = useState({
     productos: [],
     envases: [],
     marketplaces: [],
+    marcas: [],
   });
 
   useEffect(() => {
@@ -40,11 +42,15 @@ const GraficoPreciosMensuales = () => {
         const marketplaces = [
           ...new Set(res.data.map((item) => item.identificacion_url)),
         ].filter(Boolean);
+        const marcas = [...new Set(res.data.map((item) => item.marca))].filter(
+          Boolean
+        );
 
         setFilterOptions({
           productos,
           envases,
           marketplaces,
+          marcas,
         });
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -65,6 +71,7 @@ const GraficoPreciosMensuales = () => {
       productos: [],
       envases: [],
       marketplaces: [],
+      marcas: [],
     });
   };
 
@@ -76,27 +83,26 @@ const GraficoPreciosMensuales = () => {
         (filters.envases.length === 0 ||
           filters.envases.includes(item.envase)) &&
         (filters.marketplaces.length === 0 ||
-          filters.marketplaces.includes(item.identificacion_url))
+          filters.marketplaces.includes(item.identificacion_url)) &&
+        (filters.marcas.length === 0 || filters.marcas.includes(item.marca))
       );
     });
   }, [data, filters]);
 
   const processData = () => {
-    // No mostrar gráfico si no hay filtros aplicados
     if (
       filters.productos.length === 0 &&
       filters.envases.length === 0 &&
-      filters.marketplaces.length === 0
+      filters.marketplaces.length === 0 &&
+      filters.marcas.length === 0
     ) {
       return null;
     }
 
-    // No mostrar gráfico si no hay datos después del filtrado
     if (filteredData.length === 0) {
       return null;
     }
 
-    // Procesamiento de datos para el gráfico
     const monthlyData = {};
 
     filteredData.forEach((item) => {
@@ -256,7 +262,8 @@ const GraficoPreciosMensuales = () => {
             disabled={
               filters.productos.length === 0 &&
               filters.envases.length === 0 &&
-              filters.marketplaces.length === 0
+              filters.marketplaces.length === 0 &&
+              filters.marcas.length === 0
             }
           >
             Limpiar filtros
@@ -264,7 +271,7 @@ const GraficoPreciosMensuales = () => {
         }
       >
         <Row gutter={16} style={{ marginBottom: 16 }}>
-          <Col span={8}>
+          <Col span={6}>
             <Select
               mode="multiple"
               style={{ width: "100%" }}
@@ -294,7 +301,7 @@ const GraficoPreciosMensuales = () => {
               ))}
             </Select>
           </Col>
-          <Col span={8}>
+          <Col span={6}>
             <Select
               mode="multiple"
               style={{ width: "100%" }}
@@ -324,7 +331,7 @@ const GraficoPreciosMensuales = () => {
               ))}
             </Select>
           </Col>
-          <Col span={8}>
+          <Col span={6}>
             <Select
               mode="multiple"
               style={{ width: "100%" }}
@@ -354,6 +361,36 @@ const GraficoPreciosMensuales = () => {
               ))}
             </Select>
           </Col>
+          <Col span={6}>
+            <Select
+              mode="multiple"
+              style={{ width: "100%" }}
+              placeholder="Filtrar por marca(s)"
+              value={filters.marcas}
+              onChange={(value) => handleFilterChange("marcas", value)}
+              allowClear
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+              tagRender={({ label, closable, onClose }) => (
+                <Tag
+                  closable={closable}
+                  onClose={onClose}
+                  style={{ marginRight: 3 }}
+                >
+                  {label}
+                </Tag>
+              )}
+            >
+              {filterOptions.marcas.map((marca) => (
+                <Option key={marca} value={marca}>
+                  {marca}
+                </Option>
+              ))}
+            </Select>
+          </Col>
         </Row>
 
         {!chartOption ? (
@@ -361,7 +398,8 @@ const GraficoPreciosMensuales = () => {
             description={
               filters.productos.length === 0 &&
               filters.envases.length === 0 &&
-              filters.marketplaces.length === 0
+              filters.marketplaces.length === 0 &&
+              filters.marcas.length === 0
                 ? "Por favor, seleccione al menos un filtro para visualizar los datos"
                 : "No hay datos disponibles con los filtros seleccionados"
             }
@@ -379,4 +417,4 @@ const GraficoPreciosMensuales = () => {
   );
 };
 
-export default GraficoPreciosMensuales;
+export default GraficoPreciosMensualesExclusivo;

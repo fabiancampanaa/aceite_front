@@ -4,6 +4,8 @@ import { useNavigate } from "react-router";
 import GraficoPorMarketplace from "../components/grafico_cant_marca";
 import GraficoPreciosMensuales from "../components/grafico_evolucion_precios";
 import GraficoComparacionPorMarketplace from "../components/grafico_comp_market";
+import GraficoPrecioAceitePorMarketplaceExclusivo from "../components/grafico_comp_market_exclusivo";
+import GraficoPreciosMensualesExclusivo from "../components/grafico_evolucion_precios_exclusivo";
 import ListaBusquedasRRSS from "../components/grafico_rrss1";
 import "../css/dashboard.css";
 
@@ -13,6 +15,7 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [usuario, setUsuario] = useState(null);
 
   const fetchData = () => {
     setLoading(true);
@@ -42,6 +45,10 @@ function Dashboard() {
     if (!token) {
       navigate("/");
       return;
+    }
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUsuario(JSON.parse(storedUser));
     }
 
     axios.defaults.headers.common["Authorization"] = `Token ${token}`;
@@ -226,6 +233,24 @@ function Dashboard() {
                 </div>
               </div>
 
+              {usuario?.tipo_acceso === "Exclusivo" && (
+                <div className="column is-12">
+                  <div className="box">
+                    <h2 className="title is-5 has-text-white mb-4">
+                      <span className="icon-text">
+                        <span className="icon has-text-info">
+                          <i className="fas fa-lock"></i>
+                        </span>
+                        <span>
+                          Comparación entre Marketplaces (Con filtro de Marca)
+                        </span>
+                      </span>
+                    </h2>
+                    <GraficoPrecioAceitePorMarketplaceExclusivo data={data} />
+                  </div>
+                </div>
+              )}
+
               <div className="column is-12">
                 <div className="box">
                   <h2 className="title is-5 has-text-white mb-4">
@@ -240,6 +265,24 @@ function Dashboard() {
                 </div>
               </div>
             </div>
+
+            {usuario?.tipo_acceso === "Exclusivo" && (
+              <div className="column is-12">
+                <div className="box">
+                  <h2 className="title is-5 has-text-white mb-4">
+                    <span className="icon-text">
+                      <span className="icon has-text-info">
+                        <i className="fas fa-lock"></i>
+                      </span>
+                      <span>
+                        Evolucion de Precios Mensuales (con filtro de Marca)
+                      </span>
+                    </span>
+                  </h2>
+                  <GraficoPreciosMensualesExclusivo data={data} />
+                </div>
+              </div>
+            )}
 
             <div id="rrss" className="column is-full mt-5">
               <div className="box">

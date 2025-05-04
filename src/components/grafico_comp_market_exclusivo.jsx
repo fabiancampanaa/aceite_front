@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import ReactECharts from "echarts-for-react";
 import { getAllBusquedas } from "../api/busquedas.api";
 
-const GraficoPrecioAceitePorMarketplace = () => {
+const GraficoPrecioAceitePorMarketplaceExclusivo = () => {
   const [dataJson, setDataJson] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -11,6 +11,8 @@ const GraficoPrecioAceitePorMarketplace = () => {
   const [modoFecha, setModoFecha] = useState("mes"); // "mes" o "año"
   const [tipoEnvaseSeleccionado, setTipoEnvaseSeleccionado] = useState("");
   const [tiposEnvaseDisponibles, setTiposEnvaseDisponibles] = useState([]);
+  const [marcaSeleccionada, setMarcaSeleccionada] = useState("");
+  const [marcasDisponibles, setMarcasDisponibles] = useState([]);
 
   useEffect(() => {
     async function cargarBusquedas() {
@@ -51,6 +53,11 @@ const GraficoPrecioAceitePorMarketplace = () => {
 
         setTiposEnvaseDisponibles(tiposEnvase);
 
+        const marcas = Array.from(
+          new Set(res.data.map((item) => item.marca).filter((m) => m))
+        );
+        setMarcasDisponibles(marcas);
+
         setMesesDisponibles([...meses, ...años]);
         if (meses.length > 0) setMesSeleccionado(meses[0]); // Por defecto: el más reciente
       } catch (err) {
@@ -77,8 +84,14 @@ const GraficoPrecioAceitePorMarketplace = () => {
           : item.fecha_extraccion.startsWith(mesSeleccionado.slice(0, 4))); // Año (YYYY)
       const perteneceATipoEnvase =
         tipoEnvaseSeleccionado === "" || item.envase === tipoEnvaseSeleccionado;
-
-      return tienePrecio && perteneceAFecha && perteneceATipoEnvase; // Solo retorna el item si tiene precio y pertenece a la fecha
+      const perteneceAMarca =
+        marcaSeleccionada === "" || item.marca === marcaSeleccionada;
+      return (
+        tienePrecio &&
+        perteneceAFecha &&
+        perteneceATipoEnvase &&
+        perteneceAMarca
+      ); // Solo retorna el item si tiene precio y pertenece a la fecha
     });
 
     const preciosPorUrl = {};
@@ -215,6 +228,23 @@ const GraficoPrecioAceitePorMarketplace = () => {
             ))}
           </select>
         </div>
+        <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          <label htmlFor="marca" style={{ marginRight: "10px" }}>
+            Marca:
+          </label>
+          <select
+            id="marca"
+            value={marcaSeleccionada}
+            onChange={(e) => setMarcaSeleccionada(e.target.value)}
+          >
+            <option value="">Todas</option>
+            {marcasDisponibles.map((marca, index) => (
+              <option key={index} value={marca}>
+                {marca.charAt(0).toUpperCase() + marca.slice(1)}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <ReactECharts
@@ -226,4 +256,4 @@ const GraficoPrecioAceitePorMarketplace = () => {
   );
 };
 
-export default GraficoPrecioAceitePorMarketplace;
+export default GraficoPrecioAceitePorMarketplaceExclusivo;
