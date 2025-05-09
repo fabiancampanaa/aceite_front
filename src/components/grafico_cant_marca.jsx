@@ -132,7 +132,8 @@ const GraficoPorMarketplace = () => {
       aria-label="Gráfico de productos por marketplace"
     >
       <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
-        Cantidad de Productos por Marketplace
+        Cantidad de Marcas referenciadas por Marketplace al ----ultima
+        extraccion------
       </h2>
       <ReactECharts
         option={procesarDatosParaGrafico(dataJson)}
