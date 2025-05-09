@@ -58,11 +58,16 @@ function Dashboard() {
     return () => clearInterval(interval);
   }, [navigate]);
 
-  const cerrarSesion = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("user");
-    navigate("/");
-  };
+  const TituloConIcono = ({ icono, texto }) => (
+    <h2 className="title is-5 has-text-white mb-4">
+      <span className="icon-text">
+        <span className="icon has-text-info">
+          <i className={`fas ${icono}`}></i>
+        </span>
+        <span>{texto}</span>
+      </span>
+    </h2>
+  );
 
   return (
     <div className="section p-4" style={{ minHeight: "100vh" }}>
@@ -90,16 +95,6 @@ function Dashboard() {
                 <i className="fas fa-sync-alt"></i>
               </span>
               <span className="is-hidden-mobile">Actualizar</span>
-            </button>
-            <button
-              className="button is-danger is-light is-small-mobile"
-              onClick={cerrarSesion}
-              aria-label="Cerrar sesión"
-            >
-              <span className="icon">
-                <i className="fas fa-sign-out-alt"></i>
-              </span>
-              <span className="is-hidden-mobile">Salir</span>
             </button>
           </div>
         </div>
@@ -187,121 +182,83 @@ function Dashboard() {
 
       {!loading && !error && (
         <div className="columns is-multiline">
-          {/* Sidebar (optional, could be hidden on mobile) */}
-          <aside className="column is-2 is-hidden-mobile">
-            <div className="menu">
-              <p className="menu-label">Secciones</p>
-              <ul className="menu-list">
-                <li>
-                  <a href="#mercado">📊 Análisis de Mercado</a>
-                </li>
-                <li>
-                  <a href="#rrss">🌐 Redes Sociales</a>
-                </li>
-              </ul>
+          {/* Gráfico: Distribución por Marketplace */}
+          <div className="column is-6">
+            <div className="box">
+              <TituloConIcono
+                icono="fa-store"
+                texto="Distribución por Marketplace"
+              />
+              <GraficoPorMarketplace data={data} />
             </div>
-          </aside>
-
-          {/* Main content */}
-          <div className="column is-10">
-            <div id="mercado" className="columns is-multiline">
-              <div className="column is-6">
-                <div className="box">
-                  <h2 className="title is-5 has-text-white mb-4">
-                    <span className="icon-text">
-                      <span className="icon has-text-info">
-                        <i className="fas fa-store"></i>
-                      </span>
-                      <span>Distribución por Marketplace</span>
-                    </span>
-                  </h2>
-                  <GraficoPorMarketplace data={data} />
-                </div>
-              </div>
-
-              <div className="column is-6">
-                <div className="box">
-                  <h2 className="title is-5 has-text-white mb-4">
-                    <span className="icon-text">
-                      <span className="icon has-text-info">
-                        <i className="fas fa-balance-scale-right"></i>
-                      </span>
-                      <span>Comparación entre Marketplaces</span>
-                    </span>
-                  </h2>
-                  <GraficoComparacionPorMarketplace data={data} />
-                </div>
-              </div>
-
-              {usuario?.tipo_acceso === "Exclusivo" && (
-                <div className="column is-12">
-                  <div className="box">
-                    <h2 className="title is-5 has-text-white mb-4">
-                      <span className="icon-text">
-                        <span className="icon has-text-info">
-                          <i className="fas fa-lock"></i>
-                        </span>
-                        <span>
-                          Comparación entre Marketplaces (Con filtro de Marca)
-                        </span>
-                      </span>
-                    </h2>
-                    <GraficoPrecioAceitePorMarketplaceExclusivo data={data} />
-                  </div>
-                </div>
-              )}
-
-              <div className="column is-12">
-                <div className="box">
-                  <h2 className="title is-5 has-text-white mb-4">
-                    <span className="icon-text">
-                      <span className="icon has-text-info">
-                        <i className="fas fa-chart-line"></i>
-                      </span>
-                      <span>Evolución de Precios Mensuales</span>
-                    </span>
-                  </h2>
-                  <GraficoPreciosMensuales data={data} />
-                </div>
-              </div>
-            </div>
-
-            {usuario?.tipo_acceso === "Exclusivo" && (
-              <div className="column is-12">
-                <div className="box">
-                  <h2 className="title is-5 has-text-white mb-4">
-                    <span className="icon-text">
-                      <span className="icon has-text-info">
-                        <i className="fas fa-lock"></i>
-                      </span>
-                      <span>
-                        Evolucion de Precios Mensuales (con filtro de Marca)
-                      </span>
-                    </span>
-                  </h2>
-                  <GraficoPreciosMensualesExclusivo data={data} />
-                </div>
-              </div>
-            )}
-
-            <div id="rrss" className="column is-full mt-5">
-              <div className="box">
-                <h2 className="title is-5 has-text-white mb-4">
-                  <span className="icon-text">
-                    <span className="icon has-text-info">
-                      <i className="fas fa-hashtag"></i>
-                    </span>
-                    <span>Tendencias en Redes Sociales</span>
-                  </span>
-                </h2>
-                <ListaBusquedasRRSS data={data} />
-              </div>
-            </div>
-
-            <footer className="mt-6 has-text-centered">
-              <p className="is-size-7 has-text-grey-light">Aceite del Huasco</p>
-            </footer>
           </div>
+
+          {/* Comparación por Marketplace */}
+          {(usuario?.tipo_acceso === "General" ||
+            usuario?.tipo_acceso === "Exclusivo") && (
+            <div className="column is-6">
+              <div className="box">
+                <TituloConIcono
+                  icono={
+                    usuario.tipo_acceso === "Exclusivo"
+                      ? "fa-lock"
+                      : "fa-balance-scale-right"
+                  }
+                  texto={
+                    usuario.tipo_acceso === "Exclusivo"
+                      ? "Comparación entre Marketplaces (Con filtro de Marca)"
+                      : "Comparación entre Marketplaces"
+                  }
+                />
+                {usuario.tipo_acceso === "General" ? (
+                  <GraficoComparacionPorMarketplace data={data} />
+                ) : (
+                  <GraficoPrecioAceitePorMarketplaceExclusivo data={data} />
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Evolución de precios */}
+          {(usuario?.tipo_acceso === "General" ||
+            usuario?.tipo_acceso === "Exclusivo") && (
+            <div className="column is-12">
+              <div className="box">
+                <TituloConIcono
+                  icono={
+                    usuario.tipo_acceso === "Exclusivo"
+                      ? "fa-lock"
+                      : "fa-chart-line"
+                  }
+                  texto={
+                    usuario.tipo_acceso === "Exclusivo"
+                      ? "Evolución de Precios Mensuales (con filtro de Marca)"
+                      : "Evolución de Precios Mensuales"
+                  }
+                />
+                {usuario.tipo_acceso === "General" ? (
+                  <GraficoPreciosMensuales data={data} />
+                ) : (
+                  <GraficoPreciosMensualesExclusivo data={data} />
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* RRSS */}
+          <div className="column is-12">
+            <div className="box">
+              <TituloConIcono
+                icono="fa-hashtag"
+                texto="Tendencias en Redes Sociales"
+              />
+              <ListaBusquedasRRSS data={data} />
+            </div>
+          </div>
+
+          <footer className="column is-12 mt-6 has-text-centered">
+            <p className="is-size-7 has-text-grey-light">Aceite del Huasco</p>
+          </footer>
         </div>
       )}
     </div>

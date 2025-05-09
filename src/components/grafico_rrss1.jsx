@@ -23,24 +23,50 @@ const ListaBusquedasRRSS = () => {
 
   // Configuración gráfico de barras: Seguidores por Marca
   const getOptionSeguidores = () => {
-    const marcas = [...new Set(busquedas.map((item) => item.marca))];
+    const datosPorMarca = busquedas.reduce((acc, item) => {
+      const marca = item.marca || "Sin Marca";
+      const seguidores = Number(item.seguidores || 0);
+
+      if (!acc[marca]) {
+        acc[marca] = { total: 0, count: 0 };
+      }
+
+      acc[marca].total += seguidores;
+      acc[marca].count += 1;
+
+      return acc;
+    }, {});
+
+    const marcas = Object.keys(datosPorMarca);
     const datos = marcas.map((marca) => {
-      const total = busquedas
-        .filter((item) => item.marca === marca)
-        .reduce((sum, item) => sum + Number(item.seguidores || 0), 0);
-      return total;
+      const { total, count } = datosPorMarca[marca];
+      return count > 0 ? total / count : 0;
     });
 
     return {
-      title: { text: "Seguidores por Marca" },
+      title: {
+        text: "Promedio de Seguidores por Marca",
+        left: "center",
+        textStyle: {
+          color: "#fff",
+        },
+      },
       tooltip: {},
       xAxis: { data: marcas },
       yAxis: {},
       series: [
         {
-          name: "Seguidores",
+          name: "Promedio de Seguidores",
           type: "bar",
           data: datos,
+          label: {
+            show: true,
+            position: "top",
+            fontSize: 13,
+            color: "#fff",
+            fontWeight: "bold",
+            formatter: (params) => `${params.value.toFixed(0)}`,
+          },
         },
       ],
     };
@@ -54,15 +80,40 @@ const ListaBusquedasRRSS = () => {
     }, {});
 
     return {
-      title: { text: "Distribución por Red Social" },
+      title: {
+        text: "Distribución por Red Social",
+        left: "center",
+        textStyle: {
+          color: "#fff",
+        },
+      },
       tooltip: { trigger: "item" },
+      legend: {
+        orient: "vertical",
+        left: "left",
+        textStyle: {
+          color: "#fff",
+        },
+      },
       series: [
         {
           type: "pie",
+          radius: "60%",
           data: Object.entries(conteo).map(([name, value]) => ({
             name,
             value,
           })),
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowOffsetX: 0,
+              shadowColor: "rgba(0, 0, 0, 0.5)",
+            },
+          },
+          label: {
+            formatter: "{b}: {c} ({d}%)",
+            color: "#fff", // Aquí se define el color blanco para las etiquetas
+          },
         },
       ],
     };

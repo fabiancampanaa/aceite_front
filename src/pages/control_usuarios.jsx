@@ -39,12 +39,6 @@ function GestionUsuarios() {
     fetchData();
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("user");
-    navigate("/");
-  };
-
   const openEditModal = (user) => {
     console.log(user.id);
     setSelectedUser(user);
@@ -86,14 +80,6 @@ function GestionUsuarios() {
         <div className="level">
           <div className="level-left">
             <h1 className="title is-3">Gestión de usuarios</h1>
-          </div>
-          <div className="level-right">
-            <button
-              className="button is-danger is-small"
-              onClick={handleLogout}
-            >
-              Cerrar sesión
-            </button>
           </div>
         </div>
 

@@ -34,7 +34,7 @@ const GraficoPreciosMensualesExclusivo = () => {
         setData(res.data);
 
         const productos = [
-          ...new Set(res.data.map((item) => item.producto)),
+          ...new Set(res.data.map((item) => item.producto.toUpperCase())),
         ].filter(Boolean);
         const envases = [
           ...new Set(res.data.map((item) => item.envase)),
@@ -46,12 +46,7 @@ const GraficoPreciosMensualesExclusivo = () => {
           Boolean
         );
 
-        setFilterOptions({
-          productos,
-          envases,
-          marketplaces,
-          marcas,
-        });
+        setFilterOptions({ productos, envases, marketplaces, marcas });
       } catch (error) {
         console.error("Error fetching data:", error);
         setError("Error al cargar los datos");
@@ -62,24 +57,56 @@ const GraficoPreciosMensualesExclusivo = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const filteredEnvases = new Set();
+    const filteredMarketplaces = new Set();
+    const filteredProductos = new Set();
+    const filteredMarcas = new Set();
+
+    data.forEach((item) => {
+      const producto = item.producto?.toUpperCase();
+      if (
+        (filters.productos.length === 0 ||
+          filters.productos.includes(producto)) &&
+        (filters.envases.length === 0 ||
+          filters.envases.includes(item.envase)) &&
+        (filters.marketplaces.length === 0 ||
+          filters.marketplaces.includes(item.identificacion_url)) &&
+        (filters.marcas.length === 0 || filters.marcas.includes(item.marca))
+      ) {
+        filteredEnvases.add(item.envase);
+        filteredMarketplaces.add(item.identificacion_url);
+        filteredProductos.add(producto);
+        filteredMarcas.add(item.marca);
+      }
+    });
+
+    setFilterOptions({
+      productos: Array.from(
+        new Set([...filteredProductos, ...filters.productos])
+      ),
+      envases: Array.from(new Set([...filteredEnvases, ...filters.envases])),
+      marketplaces: Array.from(
+        new Set([...filteredMarketplaces, ...filters.marketplaces])
+      ),
+      marcas: Array.from(new Set([...filteredMarcas, ...filters.marcas])),
+    });
+  }, [filters, data]);
+
   const handleFilterChange = (filterName, value) => {
     setFilters((prev) => ({ ...prev, [filterName]: value }));
   };
 
   const resetFilters = () => {
-    setFilters({
-      productos: [],
-      envases: [],
-      marketplaces: [],
-      marcas: [],
-    });
+    setFilters({ productos: [], envases: [], marketplaces: [], marcas: [] });
   };
 
   const filteredData = useMemo(() => {
     return data.filter((item) => {
+      const producto = item.producto?.toUpperCase();
       return (
         (filters.productos.length === 0 ||
-          filters.productos.includes(item.producto)) &&
+          filters.productos.includes(producto)) &&
         (filters.envases.length === 0 ||
           filters.envases.includes(item.envase)) &&
         (filters.marketplaces.length === 0 ||
@@ -203,28 +230,18 @@ const GraficoPreciosMensualesExclusivo = () => {
           `;
         },
       },
-      legend: {
-        data: marketplaces,
-        bottom: 0,
-      },
+      legend: { data: marketplaces, bottom: 0 },
       xAxis: {
         type: "category",
         data: months.map((m) => moment(m).format("MMM YY")),
-        axisLabel: {
-          rotate: 45,
-          interval: 0,
-        },
+        axisLabel: { rotate: 45, interval: 0 },
       },
       yAxis: {
         type: "value",
-        axisLabel: {
-          formatter: "${value}",
-        },
+        axisLabel: { formatter: "${value}" },
       },
       series,
-      grid: {
-        bottom: "15%",
-      },
+      grid: { bottom: "15%" },
     };
   };
 
@@ -275,66 +292,6 @@ const GraficoPreciosMensualesExclusivo = () => {
             <Select
               mode="multiple"
               style={{ width: "100%" }}
-              placeholder="Filtrar por producto(s)"
-              value={filters.productos}
-              onChange={(value) => handleFilterChange("productos", value)}
-              allowClear
-              showSearch
-              optionFilterProp="children"
-              filterOption={(input, option) =>
-                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-              }
-              tagRender={({ label, closable, onClose }) => (
-                <Tag
-                  closable={closable}
-                  onClose={onClose}
-                  style={{ marginRight: 3 }}
-                >
-                  {label}
-                </Tag>
-              )}
-            >
-              {filterOptions.productos.map((producto) => (
-                <Option key={producto} value={producto}>
-                  {producto}
-                </Option>
-              ))}
-            </Select>
-          </Col>
-          <Col span={6}>
-            <Select
-              mode="multiple"
-              style={{ width: "100%" }}
-              placeholder="Filtrar por envase(s)"
-              value={filters.envases}
-              onChange={(value) => handleFilterChange("envases", value)}
-              allowClear
-              showSearch
-              optionFilterProp="children"
-              filterOption={(input, option) =>
-                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-              }
-              tagRender={({ label, closable, onClose }) => (
-                <Tag
-                  closable={closable}
-                  onClose={onClose}
-                  style={{ marginRight: 3 }}
-                >
-                  {label}
-                </Tag>
-              )}
-            >
-              {filterOptions.envases.map((envase) => (
-                <Option key={envase} value={envase}>
-                  {envase}
-                </Option>
-              ))}
-            </Select>
-          </Col>
-          <Col span={6}>
-            <Select
-              mode="multiple"
-              style={{ width: "100%" }}
               placeholder="Filtrar por marketplace(s)"
               value={filters.marketplaces}
               onChange={(value) => handleFilterChange("marketplaces", value)}
@@ -342,7 +299,7 @@ const GraficoPreciosMensualesExclusivo = () => {
               showSearch
               optionFilterProp="children"
               filterOption={(input, option) =>
-                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                option.children.toLowerCase().includes(input.toLowerCase())
               }
               tagRender={({ label, closable, onClose }) => (
                 <Tag
@@ -361,6 +318,69 @@ const GraficoPreciosMensualesExclusivo = () => {
               ))}
             </Select>
           </Col>
+
+          <Col span={6}>
+            <Select
+              mode="multiple"
+              style={{ width: "100%" }}
+              placeholder="Filtrar por envase(s)"
+              value={filters.envases}
+              onChange={(value) => handleFilterChange("envases", value)}
+              allowClear
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                option.children.toLowerCase().includes(input.toLowerCase())
+              }
+              tagRender={({ label, closable, onClose }) => (
+                <Tag
+                  closable={closable}
+                  onClose={onClose}
+                  style={{ marginRight: 3 }}
+                >
+                  {label}
+                </Tag>
+              )}
+            >
+              {filterOptions.envases.map((envase) => (
+                <Option key={envase} value={envase}>
+                  {envase}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+
+          <Col span={6}>
+            <Select
+              mode="multiple"
+              style={{ width: "100%" }}
+              placeholder="Filtrar por producto(s)"
+              value={filters.productos}
+              onChange={(value) => handleFilterChange("productos", value)}
+              allowClear
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                option.children.toLowerCase().includes(input.toLowerCase())
+              }
+              tagRender={({ label, closable, onClose }) => (
+                <Tag
+                  closable={closable}
+                  onClose={onClose}
+                  style={{ marginRight: 3 }}
+                >
+                  {label}
+                </Tag>
+              )}
+            >
+              {filterOptions.productos.map((producto) => (
+                <Option key={producto} value={producto}>
+                  {producto}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+
           <Col span={6}>
             <Select
               mode="multiple"
@@ -372,7 +392,7 @@ const GraficoPreciosMensualesExclusivo = () => {
               showSearch
               optionFilterProp="children"
               filterOption={(input, option) =>
-                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                option.children.toLowerCase().includes(input.toLowerCase())
               }
               tagRender={({ label, closable, onClose }) => (
                 <Tag

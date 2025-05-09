@@ -87,37 +87,8 @@ const CargarExcel = () => {
     }
   };
 
-  const cerrarSesion = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("user");
-    // Redirigir o recargar
-    window.location.href = "/"; // Cambia la ruta según tu app
-  };
-
   return (
     <div>
-      {/* Navbar */}
-      <nav
-        className="navbar is-dark"
-        role="navigation"
-        aria-label="main navigation"
-      >
-        <div className="navbar-brand">
-          <span className="navbar-item has-text-white">
-            📊 Cargador de Archivos BOT
-          </span>
-        </div>
-        <div className="navbar-menu is-active">
-          <div className="navbar-end">
-            <div className="navbar-item">
-              <button className="button is-light" onClick={cerrarSesion}>
-                Cerrar sesión
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       {/* Contenido */}
       <div className="container mt-5">
         <h2 className="title is-4">Cargar archivos extracción BOT</h2>
