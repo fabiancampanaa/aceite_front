@@ -22,6 +22,18 @@ const GraficoPorMarketplace = () => {
     cargarBusquedas();
   }, []);
 
+  const obtenerFechaMasReciente = (data) => {
+    const fechas = data
+      .map((item) => new Date(item.fecha_extraccion))
+      .filter((fecha) => !isNaN(fecha.getTime()));
+    if (fechas.length === 0) return null;
+    const fechaMasReciente = new Date(Math.max(...fechas));
+    return fechaMasReciente.toLocaleDateString("es-ES", {
+      year: "numeric",
+      month: "long",
+    });
+  };
+
   const colors = [
     "#5470C6",
     "#91CC75",
@@ -53,7 +65,6 @@ const GraficoPorMarketplace = () => {
     }));
 
     conteoDatos.sort((a, b) => b.cantidad - a.cantidad);
-
     const datosMostrar = conteoDatos.slice(0, 20);
 
     return {
@@ -97,12 +108,12 @@ const GraficoPorMarketplace = () => {
             color: (params) => colors[params.dataIndex % colors.length],
           },
           label: {
-            show: true,
+            show: false,
             position: "right",
             formatter: (params) => params.value,
-            fontSize: 13, // Tamaño de la fuente para las etiquetas dentro de las barras
-            color: "#fff", // Color de la etiqueta
-            fontWeight: "bold", // Hacer la etiqueta en negrita
+            fontSize: 13,
+            color: "#fff",
+            fontWeight: "bold",
           },
           emphasis: {
             itemStyle: {
@@ -125,19 +136,20 @@ const GraficoPorMarketplace = () => {
     (item) => item.identificacion_url && item.identificacion_url.trim() !== ""
   );
   const registrosFiltrados = dataJson.length - datosFiltrados.length;
+  const fechaMasReciente = obtenerFechaMasReciente(dataJson);
 
   return (
     <div
-      style={{ padding: "30px" }}
+      style={{ padding: "10px" }}
       aria-label="Gráfico de productos por marketplace"
     >
       <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
-        Cantidad de Marcas referenciadas por Marketplace al ----ultima
-        extraccion------
+        Cantidad de Marcas referenciadas por Marketplace
+        {fechaMasReciente ? ` a ${fechaMasReciente}` : ""}
       </h2>
       <ReactECharts
         option={procesarDatosParaGrafico(dataJson)}
-        style={{ height: "600px", width: "100%" }}
+        style={{ height: "500px", width: "100%" }}
         theme="light"
       />
       {registrosFiltrados > 0 && (

@@ -21,57 +21,6 @@ const ListaBusquedasRRSS = () => {
     obtenerBusquedas();
   }, []);
 
-  // Configuración gráfico de barras: Seguidores por Marca
-  const getOptionSeguidores = () => {
-    const datosPorMarca = busquedas.reduce((acc, item) => {
-      const marca = item.marca || "Sin Marca";
-      const seguidores = Number(item.seguidores || 0);
-
-      if (!acc[marca]) {
-        acc[marca] = { total: 0, count: 0 };
-      }
-
-      acc[marca].total += seguidores;
-      acc[marca].count += 1;
-
-      return acc;
-    }, {});
-
-    const marcas = Object.keys(datosPorMarca);
-    const datos = marcas.map((marca) => {
-      const { total, count } = datosPorMarca[marca];
-      return count > 0 ? total / count : 0;
-    });
-
-    return {
-      title: {
-        text: "Promedio de Seguidores por Marca",
-        left: "center",
-        textStyle: {
-          color: "#fff",
-        },
-      },
-      tooltip: {},
-      xAxis: { data: marcas },
-      yAxis: {},
-      series: [
-        {
-          name: "Promedio de Seguidores",
-          type: "bar",
-          data: datos,
-          label: {
-            show: true,
-            position: "top",
-            fontSize: 13,
-            color: "#fff",
-            fontWeight: "bold",
-            formatter: (params) => `${params.value.toFixed(0)}`,
-          },
-        },
-      ],
-    };
-  };
-
   // Configuración gráfico circular: Distribución de Redes Sociales
   const getOptionRedesSociales = () => {
     const conteo = busquedas.reduce((acc, item) => {
@@ -125,12 +74,6 @@ const ListaBusquedasRRSS = () => {
   return (
     <div>
       <h2>Búsquedas en Redes Sociales</h2>
-
-      <ReactECharts
-        option={getOptionSeguidores()}
-        style={{ height: "400px", margin: "20px 0" }}
-      />
-
       <ReactECharts
         option={getOptionRedesSociales()}
         style={{ height: "400px", margin: "20px 0" }}

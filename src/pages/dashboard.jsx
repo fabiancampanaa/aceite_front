@@ -7,6 +7,8 @@ import GraficoComparacionPorMarketplace from "../components/grafico_comp_market"
 import GraficoPrecioAceitePorMarketplaceExclusivo from "../components/grafico_comp_market_exclusivo";
 import GraficoPreciosMensualesExclusivo from "../components/grafico_evolucion_precios_exclusivo";
 import ListaBusquedasRRSS from "../components/grafico_rrss1";
+import GraficoPrecioAceitePorMarca from "../components/grafico_comp_marca";
+import ListaBusquedasRRSSMarca from "../components/grafico_rrss2";
 import "../css/dashboard.css";
 
 function Dashboard() {
@@ -17,27 +19,28 @@ function Dashboard() {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [usuario, setUsuario] = useState(null);
 
-  const fetchData = () => {
+  const fetchData = async () => {
     setLoading(true);
     setError(null);
 
-    axios
-      .get("http://127.0.0.1:8000/api/v1/busquedas/")
-      .then((response) => {
-        setData(response.data);
-        setLastUpdated(new Date());
-      })
-      .catch((error) => {
-        if (error.response && error.response.status === 401) {
-          localStorage.removeItem("authToken");
-          navigate("/");
-        } else {
-          setError(
-            "No se pudieron cargar los datos. Por favor intenta nuevamente."
-          );
-        }
-      })
-      .finally(() => setLoading(false));
+    try {
+      const response = await axios.get(
+        "http://127.0.0.1:8000/api/v1/busquedas/"
+      );
+      setData(response.data);
+      setLastUpdated(new Date());
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        localStorage.removeItem("authToken");
+        navigate("/");
+      } else {
+        setError(
+          "No se pudieron cargar los datos. Por favor intenta nuevamente."
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -181,9 +184,9 @@ function Dashboard() {
       )}
 
       {!loading && !error && (
-        <div className="columns is-multiline">
+        <div className="fixed-grid has-1-cols">
           {/* Gráfico: Distribución por Marketplace */}
-          <div className="column is-6">
+          <div className="column is-12-desktop is-12-mobile">
             <div className="box">
               <TituloConIcono
                 icono="fa-store"
@@ -196,7 +199,7 @@ function Dashboard() {
           {/* Comparación por Marketplace */}
           {(usuario?.tipo_acceso === "General" ||
             usuario?.tipo_acceso === "Exclusivo") && (
-            <div className="column is-6">
+            <div className="column is-12-desktop is-12-mobile">
               <div className="box">
                 <TituloConIcono
                   icono={
@@ -213,7 +216,20 @@ function Dashboard() {
                 {usuario.tipo_acceso === "General" ? (
                   <GraficoComparacionPorMarketplace data={data} />
                 ) : (
-                  <GraficoPrecioAceitePorMarketplaceExclusivo data={data} />
+                  <div className="fixed-grid has-1-cols">
+                    <div className="column is-12 p-4">
+                      <div className="box">
+                        <GraficoPrecioAceitePorMarketplaceExclusivo
+                          data={data}
+                        />
+                      </div>
+                    </div>
+                    <div className="column is-12">
+                      <div className="box">
+                        <GraficoPrecioAceitePorMarca data={data} />
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
@@ -252,7 +268,23 @@ function Dashboard() {
                 icono="fa-hashtag"
                 texto="Tendencias en Redes Sociales"
               />
-              <ListaBusquedasRRSS data={data} />
+
+              {usuario.tipo_acceso === "General" ? (
+                <ListaBusquedasRRSS data={data} />
+              ) : (
+                <div className="fixed-grid has-1-cols">
+                  <div className="column is-12 p-4">
+                    <div className="box">
+                      <ListaBusquedasRRSS data={data} />
+                    </div>
+                  </div>
+                  <div className="column is-12 p-4">
+                    <div className="box">
+                      <ListaBusquedasRRSSMarca data={data} />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
