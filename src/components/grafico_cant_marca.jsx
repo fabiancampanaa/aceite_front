@@ -89,6 +89,7 @@ const GraficoPorMarketplace = () => {
         nameGap: 25,
       },
       yAxis: {
+        inverse: true,
         type: "category",
         data: datosMostrar.map((item) => item.url),
         axisLabel: {

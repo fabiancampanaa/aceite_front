@@ -181,7 +181,7 @@ const GraficoPreciosMensuales = () => {
         const data = monthlyData[month].marketplaces[marketplace];
         if (!data) return null;
 
-        const promedio = parseFloat((data.total / data.count).toFixed(2));
+        const promedio = parseFloat((data.total / data.count).toFixed(0));
         return {
           value: promedio,
           min: data.min,
@@ -277,7 +277,7 @@ const GraficoPreciosMensuales = () => {
   return (
     <div style={{ padding: 20 }}>
       <Card
-        title="Evolución de Precios"
+        title="Evolución de Precios con IVA homologado a un litro de aceite"
         extra={
           <Button
             onClick={resetFilters}

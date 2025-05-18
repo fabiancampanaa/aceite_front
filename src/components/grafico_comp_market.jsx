@@ -115,6 +115,15 @@ const GraficoPrecioAceitePorMarketplace = () => {
         name: "Precio por litro (sin IVA)",
         nameLocation: "middle",
         nameGap: 25,
+        axisLine: {
+          show: false,
+        },
+        splitLine: {
+          show: false,
+        },
+        axisLabel: {
+          show: false,
+        },
       },
       yAxis: {
         type: "category",
@@ -152,7 +161,7 @@ const GraficoPrecioAceitePorMarketplace = () => {
   return (
     <div style={{ padding: "30px" }}>
       <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
-        Precio Promedio por Litro de Aceite
+        Precio Promedio con IVA por un Litro de Aceite
       </h2>
 
       {/* Selector de mes */}
