@@ -79,6 +79,12 @@ const ListaBusquedasRRSSMarca = () => {
         left: "center",
         textStyle: { color: "#fff" },
       },
+      label: {
+        show: true,
+        color: "#fff",
+        fontWeight: "bold",
+      },
+
       tooltip: {
         trigger: "axis",
       },

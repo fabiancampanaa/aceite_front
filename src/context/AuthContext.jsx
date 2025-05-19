@@ -1,5 +1,4 @@
 import { createContext, useContext, useEffect, useState } from "react";
-
 import { jwtDecode } from "jwt-decode";
 
 const AuthContext = createContext();
@@ -8,24 +7,40 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [authToken, setAuthToken] = useState(null);
 
+  // Función para cerrar sesión
+  const logout = () => {
+    setUser(null);
+    setAuthToken(null);
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+  };
+
   // Función para validar el token
   const validateToken = (token) => {
     try {
-      const decoded = jwtDecode(token); // Decodificar el token
+      const parts = token.split(".");
+      if (parts.length !== 3) {
+        throw new Error("El token no tiene el formato JWT esperado");
+      }
+
+      const decoded = jwtDecode(token);
       if (decoded.exp * 1000 < Date.now()) {
-        logout(); // Si el token ha expirado, hacer logout
+        console.warn("Token expirado");
+        logout();
       }
     } catch (e) {
-      console.error("Token inválido", e);
-      logout(); // Si el token no es decodificable, hacer logout
+      console.error("Token inválido:", e.message);
+      logout();
     }
   };
 
+  // Cargar token y usuario al iniciar
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     const userData = localStorage.getItem("user");
-    if (token && userData) {
-      validateToken(token); // Validar el token al cargar
+
+    if (token && token !== "undefined" && token.trim() !== "" && userData) {
+      validateToken(token);
       setAuthToken(token);
       setUser(JSON.parse(userData));
     }
@@ -37,14 +52,6 @@ export function AuthProvider({ children }) {
     setAuthToken(token);
     localStorage.setItem("authToken", token);
     localStorage.setItem("user", JSON.stringify(userData));
-  };
-
-  // Logout
-  const logout = () => {
-    setUser(null);
-    setAuthToken(null);
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("user");
   };
 
   return (
