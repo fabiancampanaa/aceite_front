@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import GraficoPorMarketplace from "../components/grafico_cant_marca";
-import GraficoPreciosMensuales from "../components/grafico_evolucion_precios";
+//import GraficoPreciosMensuales from "../components/grafico_evolucion_precios";
 import GraficoComparacionPorMarketplace from "../components/grafico_comp_market";
 import GraficoPrecioAceitePorMarketplaceExclusivo from "../components/grafico_comp_market_exclusivo";
 import GraficoPreciosMensualesExclusivo from "../components/grafico_evolucion_precios_exclusivo";

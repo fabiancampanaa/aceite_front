@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import jwtDecode from "jwt-decode"; // <--- CORRECTO
+import * as jwtDecode from "jwt-decode"; // Import como namespace para evitar error en Vite
 
 const AuthContext = createContext();
 
@@ -21,7 +21,9 @@ export function AuthProvider({ children }) {
         throw new Error("El token no tiene el formato JWT esperado");
       }
 
-      const decoded = jwtDecode(token);
+      const decodeFn = jwtDecode.default || jwtDecode;
+      const decoded = decodeFn(token);
+
       if (decoded.exp * 1000 < Date.now()) {
         console.warn("Token expirado");
         logout();
