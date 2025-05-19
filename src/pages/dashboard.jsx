@@ -254,9 +254,15 @@ function Dashboard() {
                   }
                 />
                 {usuario.tipo_acceso === "General" ? (
-                  <GraficoPreciosMensuales data={data} />
+                  <GraficoPreciosMensualesExclusivo
+                    data={data}
+                    showMarca={false}
+                  />
                 ) : (
-                  <GraficoPreciosMensualesExclusivo data={data} />
+                  <GraficoPreciosMensualesExclusivo
+                    data={data}
+                    showMarca={true}
+                  />
                 )}
               </div>
             </div>

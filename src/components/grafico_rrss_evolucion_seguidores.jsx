@@ -89,9 +89,10 @@ const ListaBusquedasRRSSMarca = () => {
         trigger: "axis",
       },
       legend: {
-        top: 30,
+        bottom: 0,
         textStyle: { color: "#fff" },
         selected: legendSelected,
+        position: "bottom",
       },
       backgroundColor: "#2c343c",
       xAxis: {

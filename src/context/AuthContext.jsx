@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
+import jwtDecode from "jwt-decode"; // <--- CORRECTO
 
 const AuthContext = createContext();
 
@@ -7,7 +7,6 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [authToken, setAuthToken] = useState(null);
 
-  // Función para cerrar sesión
   const logout = () => {
     setUser(null);
     setAuthToken(null);
@@ -15,7 +14,6 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("user");
   };
 
-  // Función para validar el token
   const validateToken = (token) => {
     try {
       const parts = token.split(".");
@@ -34,7 +32,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Cargar token y usuario al iniciar
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     const userData = localStorage.getItem("user");
@@ -46,7 +43,6 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  // Login
   const login = (userData, token) => {
     setUser(userData);
     setAuthToken(token);

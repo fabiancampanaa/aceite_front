@@ -1,15 +1,15 @@
+// components/GraficoPreciosMensualesExclusivo.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import ReactECharts from "echarts-for-react";
 import { getAllBusquedas } from "../api/busquedas.api";
-import { Select, Card, Row, Col, Button, Empty, Tag } from "antd";
+import { Card, Button, Empty } from "antd";
 import moment from "moment";
 import "moment/locale/es";
-
-const { Option } = Select;
+import Filtros from "./filtros";
 
 moment.locale("es");
 
-const GraficoPreciosMensualesExclusivo = () => {
+const GraficoPreciosMensualesExclusivo = ({ showMarca = true }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,14 +17,14 @@ const GraficoPreciosMensualesExclusivo = () => {
     productos: [],
     envases: [],
     marketplaces: [],
-    marcas: [],
+    ...(showMarca && { marcas: [] }),
   });
 
   const [filterOptions, setFilterOptions] = useState({
     productos: [],
     envases: [],
     marketplaces: [],
-    marcas: [],
+    ...(showMarca && { marcas: [] }),
   });
 
   useEffect(() => {
@@ -34,7 +34,7 @@ const GraficoPreciosMensualesExclusivo = () => {
         setData(res.data);
 
         const productos = [
-          ...new Set(res.data.map((item) => item.producto.toUpperCase())),
+          ...new Set(res.data.map((item) => item.producto?.toUpperCase())),
         ].filter(Boolean);
         const envases = [
           ...new Set(res.data.map((item) => item.envase)),
@@ -46,7 +46,12 @@ const GraficoPreciosMensualesExclusivo = () => {
           Boolean
         );
 
-        setFilterOptions({ productos, envases, marketplaces, marcas });
+        setFilterOptions({
+          productos,
+          envases,
+          marketplaces,
+          ...(showMarca && { marcas }),
+        });
       } catch (error) {
         console.error("Error fetching data:", error);
         setError("Error al cargar los datos");
@@ -55,73 +60,67 @@ const GraficoPreciosMensualesExclusivo = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [showMarca]);
+
+  const filterItem = (item) => {
+    const producto = item.producto?.toUpperCase();
+    return (
+      (filters.productos.length === 0 ||
+        filters.productos.includes(producto)) &&
+      (filters.envases.length === 0 || filters.envases.includes(item.envase)) &&
+      (filters.marketplaces.length === 0 ||
+        filters.marketplaces.includes(item.identificacion_url)) &&
+      (!showMarca ||
+        filters.marcas.length === 0 ||
+        filters.marcas.includes(item.marca))
+    );
+  };
 
   useEffect(() => {
-    const filteredEnvases = new Set();
-    const filteredMarketplaces = new Set();
-    const filteredProductos = new Set();
-    const filteredMarcas = new Set();
-
-    data.forEach((item) => {
-      const producto = item.producto?.toUpperCase();
-      if (
-        (filters.productos.length === 0 ||
-          filters.productos.includes(producto)) &&
-        (filters.envases.length === 0 ||
-          filters.envases.includes(item.envase)) &&
-        (filters.marketplaces.length === 0 ||
-          filters.marketplaces.includes(item.identificacion_url)) &&
-        (filters.marcas.length === 0 || filters.marcas.includes(item.marca))
-      ) {
-        filteredEnvases.add(item.envase);
-        filteredMarketplaces.add(item.identificacion_url);
-        filteredProductos.add(producto);
-        filteredMarcas.add(item.marca);
-      }
-    });
+    const filteredItems = data.filter(filterItem);
 
     setFilterOptions({
-      productos: Array.from(
-        new Set([...filteredProductos, ...filters.productos])
-      ),
-      envases: Array.from(new Set([...filteredEnvases, ...filters.envases])),
-      marketplaces: Array.from(
-        new Set([...filteredMarketplaces, ...filters.marketplaces])
-      ),
-      marcas: Array.from(new Set([...filteredMarcas, ...filters.marcas])),
+      productos: [
+        ...new Set(
+          filteredItems.map((i) => i.producto?.toUpperCase()).filter(Boolean)
+        ),
+      ],
+      envases: [...new Set(filteredItems.map((i) => i.envase).filter(Boolean))],
+      marketplaces: [
+        ...new Set(
+          filteredItems.map((i) => i.identificacion_url).filter(Boolean)
+        ),
+      ],
+      ...(showMarca && {
+        marcas: [...new Set(filteredItems.map((i) => i.marca).filter(Boolean))],
+      }),
     });
-  }, [filters, data]);
+  }, [filters, data, showMarca]);
 
   const handleFilterChange = (filterName, value) => {
     setFilters((prev) => ({ ...prev, [filterName]: value }));
   };
 
   const resetFilters = () => {
-    setFilters({ productos: [], envases: [], marketplaces: [], marcas: [] });
+    setFilters({
+      productos: [],
+      envases: [],
+      marketplaces: [],
+      ...(showMarca && { marcas: [] }),
+    });
   };
 
-  const filteredData = useMemo(() => {
-    return data.filter((item) => {
-      const producto = item.producto?.toUpperCase();
-      return (
-        (filters.productos.length === 0 ||
-          filters.productos.includes(producto)) &&
-        (filters.envases.length === 0 ||
-          filters.envases.includes(item.envase)) &&
-        (filters.marketplaces.length === 0 ||
-          filters.marketplaces.includes(item.identificacion_url)) &&
-        (filters.marcas.length === 0 || filters.marcas.includes(item.marca))
-      );
-    });
-  }, [data, filters]);
+  const filteredData = useMemo(
+    () => data.filter(filterItem),
+    [data, filters, showMarca]
+  );
 
   const processData = () => {
     if (
       filters.productos.length === 0 &&
       filters.envases.length === 0 &&
       filters.marketplaces.length === 0 &&
-      filters.marcas.length === 0
+      (!showMarca || filters.marcas.length === 0)
     ) {
       return null;
     }
@@ -134,7 +133,6 @@ const GraficoPreciosMensualesExclusivo = () => {
 
     filteredData.forEach((item) => {
       if (!item.fecha_extraccion) return;
-
       const month = moment(item.fecha_extraccion).format("YYYY-MM");
 
       if (!monthlyData[month]) {
@@ -156,16 +154,11 @@ const GraficoPreciosMensualesExclusivo = () => {
           max: precio,
         };
       } else {
-        monthlyData[month].marketplaces[marketplace].total += precio;
-        monthlyData[month].marketplaces[marketplace].count++;
-        monthlyData[month].marketplaces[marketplace].min = Math.min(
-          monthlyData[month].marketplaces[marketplace].min,
-          precio
-        );
-        monthlyData[month].marketplaces[marketplace].max = Math.max(
-          monthlyData[month].marketplaces[marketplace].max,
-          precio
-        );
+        const entry = monthlyData[month].marketplaces[marketplace];
+        entry.total += precio;
+        entry.count++;
+        entry.min = Math.min(entry.min, precio);
+        entry.max = Math.max(entry.max, precio);
       }
     });
 
@@ -183,14 +176,14 @@ const GraficoPreciosMensualesExclusivo = () => {
       name: marketplace,
       type: "line",
       data: months.map((month) => {
-        const data = monthlyData[month].marketplaces[marketplace];
-        if (!data) return null;
+        const entry = monthlyData[month].marketplaces[marketplace];
+        if (!entry) return null;
 
-        const promedio = parseFloat((data.total / data.count).toFixed(0));
+        const promedio = parseFloat((entry.total / entry.count).toFixed(0));
         return {
           value: promedio,
-          min: data.min,
-          max: data.max,
+          min: entry.min,
+          max: entry.max,
           label: {
             show: true,
             formatter: `$${promedio.toLocaleString("es-CL")}`,
@@ -230,7 +223,14 @@ const GraficoPreciosMensualesExclusivo = () => {
           `;
         },
       },
-      legend: { data: marketplaces, bottom: 0 },
+      legend: {
+        data: marketplaces,
+        selected: marketplaces.reduce((acc, name) => {
+          acc[name] = false; // Desactivado por defecto
+          return acc;
+        }, {}),
+        bottom: 0,
+      },
       xAxis: {
         type: "category",
         data: months.map((m) => moment(m).format("MMM YY")),
@@ -276,150 +276,23 @@ const GraficoPreciosMensualesExclusivo = () => {
         extra={
           <Button
             onClick={resetFilters}
-            disabled={
-              filters.productos.length === 0 &&
-              filters.envases.length === 0 &&
-              filters.marketplaces.length === 0 &&
-              filters.marcas.length === 0
-            }
+            disabled={Object.values(filters).every((arr) => arr.length === 0)}
           >
             Limpiar filtros
           </Button>
         }
       >
-        <Row gutter={16} style={{ marginBottom: 16 }}>
-          <Col span={6}>
-            <Select
-              mode="multiple"
-              style={{ width: "100%" }}
-              placeholder="Filtrar por marketplace(s)"
-              value={filters.marketplaces}
-              onChange={(value) => handleFilterChange("marketplaces", value)}
-              allowClear
-              showSearch
-              optionFilterProp="children"
-              filterOption={(input, option) =>
-                option.children.toLowerCase().includes(input.toLowerCase())
-              }
-              tagRender={({ label, closable, onClose }) => (
-                <Tag
-                  closable={closable}
-                  onClose={onClose}
-                  style={{ marginRight: 3 }}
-                >
-                  {label}
-                </Tag>
-              )}
-            >
-              {filterOptions.marketplaces.map((mp) => (
-                <Option key={mp} value={mp}>
-                  {mp}
-                </Option>
-              ))}
-            </Select>
-          </Col>
-
-          <Col span={6}>
-            <Select
-              mode="multiple"
-              style={{ width: "100%" }}
-              placeholder="Filtrar por envase(s)"
-              value={filters.envases}
-              onChange={(value) => handleFilterChange("envases", value)}
-              allowClear
-              showSearch
-              optionFilterProp="children"
-              filterOption={(input, option) =>
-                option.children.toLowerCase().includes(input.toLowerCase())
-              }
-              tagRender={({ label, closable, onClose }) => (
-                <Tag
-                  closable={closable}
-                  onClose={onClose}
-                  style={{ marginRight: 3 }}
-                >
-                  {label}
-                </Tag>
-              )}
-            >
-              {filterOptions.envases.map((envase) => (
-                <Option key={envase} value={envase}>
-                  {envase}
-                </Option>
-              ))}
-            </Select>
-          </Col>
-
-          <Col span={6}>
-            <Select
-              mode="multiple"
-              style={{ width: "100%" }}
-              placeholder="Filtrar por producto(s)"
-              value={filters.productos}
-              onChange={(value) => handleFilterChange("productos", value)}
-              allowClear
-              showSearch
-              optionFilterProp="children"
-              filterOption={(input, option) =>
-                option.children.toLowerCase().includes(input.toLowerCase())
-              }
-              tagRender={({ label, closable, onClose }) => (
-                <Tag
-                  closable={closable}
-                  onClose={onClose}
-                  style={{ marginRight: 3 }}
-                >
-                  {label}
-                </Tag>
-              )}
-            >
-              {filterOptions.productos.map((producto) => (
-                <Option key={producto} value={producto}>
-                  {producto}
-                </Option>
-              ))}
-            </Select>
-          </Col>
-
-          <Col span={6}>
-            <Select
-              mode="multiple"
-              style={{ width: "100%" }}
-              placeholder="Filtrar por marca(s)"
-              value={filters.marcas}
-              onChange={(value) => handleFilterChange("marcas", value)}
-              allowClear
-              showSearch
-              optionFilterProp="children"
-              filterOption={(input, option) =>
-                option.children.toLowerCase().includes(input.toLowerCase())
-              }
-              tagRender={({ label, closable, onClose }) => (
-                <Tag
-                  closable={closable}
-                  onClose={onClose}
-                  style={{ marginRight: 3 }}
-                >
-                  {label}
-                </Tag>
-              )}
-            >
-              {filterOptions.marcas.map((marca) => (
-                <Option key={marca} value={marca}>
-                  {marca}
-                </Option>
-              ))}
-            </Select>
-          </Col>
-        </Row>
+        <Filtros
+          filters={filters}
+          filterOptions={filterOptions}
+          onFilterChange={handleFilterChange}
+          showMarca={showMarca}
+        />
 
         {!chartOption ? (
           <Empty
             description={
-              filters.productos.length === 0 &&
-              filters.envases.length === 0 &&
-              filters.marketplaces.length === 0 &&
-              filters.marcas.length === 0
+              Object.values(filters).every((arr) => arr.length === 0)
                 ? "Por favor, seleccione al menos un filtro para visualizar los datos"
                 : "No hay datos disponibles con los filtros seleccionados"
             }
