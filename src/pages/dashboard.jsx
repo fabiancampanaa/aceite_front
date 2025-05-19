@@ -9,6 +9,7 @@ import GraficoPreciosMensualesExclusivo from "../components/grafico_evolucion_pr
 import ListaBusquedasRRSS from "../components/grafico_rrss1";
 import GraficoPrecioAceitePorMarca from "../components/grafico_comp_marca";
 import ListaBusquedasRRSSMarca from "../components/grafico_rrss2";
+import ListaBusquedasRRSSEvolucion from "../components/grafico_rrss_evolucion_seguidores";
 import "../css/dashboard.css";
 
 function Dashboard() {
@@ -281,6 +282,11 @@ function Dashboard() {
                   <div className="column is-12 p-4">
                     <div className="box">
                       <ListaBusquedasRRSSMarca data={data} />
+                    </div>
+                  </div>
+                  <div className="column is-12 p-4">
+                    <div className="box">
+                      <ListaBusquedasRRSSEvolucion data={data} />
                     </div>
                   </div>
                 </div>
