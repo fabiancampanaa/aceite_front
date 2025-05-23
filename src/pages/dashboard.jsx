@@ -58,8 +58,7 @@ function Dashboard() {
     axios.defaults.headers.common["Authorization"] = `Token ${token}`;
     fetchData();
 
-    const interval = setInterval(fetchData, 5 * 60 * 1000);
-    return () => clearInterval(interval);
+    // Eliminado el intervalo para actualización automática
   }, [navigate]);
 
   const TituloConIcono = ({ icono, texto }) => (
@@ -84,6 +83,11 @@ function Dashboard() {
             </h1>
             <p className="subtitle is-6 has-text-grey-light">
               Análisis en tiempo real de productos y precios
+            </p>
+            {/* Línea para mostrar usuario y tipo */}
+            <p className="has-text-grey-light is-size-7 mt-1">
+              Usuario: {usuario?.username || "Anónimo"} - Tipo:{" "}
+              {usuario?.tipo_acceso || "Desconocido"}
             </p>
           </div>
         </div>

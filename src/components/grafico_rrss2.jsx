@@ -1,6 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { getAllBusquedasrrss } from "../api/busquedas.api";
 import ReactECharts from "echarts-for-react";
+
+const colorMarcas = {
+  Albiña: "#06541c",
+  "Alma del Huasco": "#06541c",
+  Azzait: "#06541c",
+  Payantume: "#06541c",
+};
 
 const ListaBusquedasRRSSMarca = () => {
   const [busquedas, setBusquedas] = useState([]);
@@ -12,30 +19,34 @@ const ListaBusquedasRRSSMarca = () => {
       try {
         const respuesta = await getAllBusquedasrrss();
         setBusquedas(respuesta.data);
-        setCargando(false);
       } catch (err) {
         setError(err.message);
+      } finally {
         setCargando(false);
       }
     };
     obtenerBusquedas();
   }, []);
 
-  // Configuración del gráfico solo para registros de Instagram
-  const getOptionSeguidores = () => {
-    // Filtrar los registros de la red social "instagram"
-    const datosInstagram = busquedas.filter(
-      (item) => item.rrss?.toLowerCase() === "instagram"
-    );
+  const optionSeguidores = useMemo(() => {
+    if (busquedas.length === 0) return {};
 
-    // Agrupar por marca y calcular el promedio de seguidores
-    const datosPorMarca = datosInstagram.reduce((acc, item) => {
+    const fechas = busquedas.map((item) => new Date(item.fecha_registro));
+    const fechaMax = new Date(Math.max(...fechas));
+
+    const datosUltimaFecha = busquedas.filter((item) => {
+      const fecha = new Date(item.fecha_registro);
+      return (
+        item.rrss?.toLowerCase() === "instagram" &&
+        fecha.toDateString() === fechaMax.toDateString()
+      );
+    });
+
+    const datosPorMarca = datosUltimaFecha.reduce((acc, item) => {
       const marca = item?.marca?.trim() || "Sin Marca";
       const seguidores = Number(item?.seguidores) || 0;
 
-      if (!acc[marca]) {
-        acc[marca] = { total: 0, count: 0 };
-      }
+      if (!acc[marca]) acc[marca] = { total: 0, count: 0 };
 
       acc[marca].total += seguidores;
       acc[marca].count += 1;
@@ -43,46 +54,43 @@ const ListaBusquedasRRSSMarca = () => {
       return acc;
     }, {});
 
-    const marcas = Object.keys(datosPorMarca);
-    const datos = marcas.map((marca) => {
+    // Ordenar marcas por promedio descendente
+    let marcas = Object.keys(datosPorMarca);
+    const marcasConPromedio = marcas.map((marca) => {
       const { total, count } = datosPorMarca[marca];
       const promedio = count > 0 ? total / count : 0;
+      return { marca, promedio };
+    });
+    marcasConPromedio.sort((a, b) => b.promedio - a.promedio);
+    marcas = marcasConPromedio.map((item) => item.marca);
 
-      let color = "#5470C6"; // color por defecto
+    const datos = marcasConPromedio.map((item) => ({
+      value: item.promedio,
+      itemStyle: { color: colorMarcas[item.marca] || "#5470C6" },
+    }));
 
-      if (marca === "Albiña") color = "#06541c";
-      if (marca === "Alma del Huasco") color = "#06541c";
-      if (marca === "Azzait") color = "#06541c";
-      if (marca === "Payantume") color = "#06541c";
-
-      return {
-        value: promedio,
-        itemStyle: { color },
-      };
+    const tituloFecha = fechaMax.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "long",
     });
 
     return {
       title: {
-        text: "Promedio de Seguidores en Instagram por Marca",
+        text: `Seguidores a ${tituloFecha}`,
         left: "center",
-        textStyle: {
-          color: "#fff",
-        },
+        textStyle: { color: "#fff" },
       },
-      tooltip: {},
-      backgroundColor: "#2c343c", // Opcional: fondo oscuro
+      tooltip: {
+        formatter: (params) =>
+          `${params.name}: ${Number(params.value).toLocaleString()}`,
+      },
+      backgroundColor: "#2c343c",
       xAxis: {
         data: marcas,
-        axisLabel: {
-          color: "#fff",
-          interval: 0,
-          rotate: 30,
-        },
+        axisLabel: { color: "#fff", interval: 0, rotate: 30 },
       },
       yAxis: {
-        axisLabel: {
-          color: "#fff",
-        },
+        axisLabel: { color: "#fff" },
       },
       series: [
         {
@@ -95,23 +103,20 @@ const ListaBusquedasRRSSMarca = () => {
             fontSize: 13,
             color: "#fff",
             fontWeight: "bold",
-            formatter: (params) => `${params.value.toFixed(0)}`,
-          },
-          itemStyle: {
-            color: "#61dafb",
+            formatter: (params) => Number(params.value).toLocaleString(),
           },
         },
       ],
     };
-  };
+  }, [busquedas]);
 
-  if (cargando) return <div>Cargando datos...</div>;
-  if (error) return <div>Error: {error}</div>;
+  if (cargando) return <p role="alert">Cargando datos...</p>;
+  if (error) return <p role="alert">Error: {error}</p>;
 
   return (
     <div>
       <ReactECharts
-        option={getOptionSeguidores()}
+        option={optionSeguidores}
         style={{ height: "400px", margin: "20px 0" }}
       />
     </div>

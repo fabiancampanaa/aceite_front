@@ -238,7 +238,9 @@ const GraficoPreciosMensualesExclusivo = ({ showMarca = true }) => {
       },
       yAxis: {
         type: "value",
-        axisLabel: { formatter: "${value}" },
+        axisLabel: {
+          formatter: (value) => `$${value.toLocaleString("es-CL")}`,
+        },
       },
       series,
       grid: { bottom: "15%" },

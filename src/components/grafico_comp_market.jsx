@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import ReactECharts from "echarts-for-react";
 import { getAllBusquedas } from "../api/busquedas.api";
 
@@ -17,30 +17,23 @@ const GraficoPrecioAceitePorMarketplace = () => {
       try {
         const res = await getAllBusquedas();
         setDataJson(res.data);
+
         const años = Array.from(
           new Set(
             res.data
-              .map((item) => {
-                const año = item.fecha_extraccion
-                  ? item.fecha_extraccion.slice(0, 4)
-                  : null;
-
-                return año;
-              })
+              .map((item) =>
+                item.fecha_extraccion ? item.fecha_extraccion.slice(0, 4) : null
+              )
               .filter((a) => a !== null)
           )
         ).sort((a, b) => b.localeCompare(a));
-        // Extraer meses únicos del campo fecha_extraccion
+
         const meses = Array.from(
           new Set(
             res.data
-              .map((item) => {
-                const mes = item.fecha_extraccion
-                  ? item.fecha_extraccion.slice(0, 7)
-                  : null;
-
-                return mes;
-              })
+              .map((item) =>
+                item.fecha_extraccion ? item.fecha_extraccion.slice(0, 7) : null
+              )
               .filter((m) => m !== null)
           )
         ).sort((a, b) => b.localeCompare(a));
@@ -50,11 +43,10 @@ const GraficoPrecioAceitePorMarketplace = () => {
         );
 
         setTiposEnvaseDisponibles(tiposEnvase);
-
         setMesesDisponibles([...meses, ...años]);
-        if (meses.length > 0) setMesSeleccionado(meses[0]); // Por defecto: el más reciente
+        if (meses.length > 0) setMesSeleccionado(meses[0]);
       } catch (err) {
-        setError("Error al cargar los datos");
+        setError(err?.message || "Error al cargar los datos");
         console.error(err);
       } finally {
         setLoading(false);
@@ -66,19 +58,16 @@ const GraficoPrecioAceitePorMarketplace = () => {
 
   const procesarDatos = (data) => {
     const datosFiltrados = data.filter((item) => {
-      // Verificar si tiene precio
       const tienePrecio = item.precio_litro !== null && item.precio_litro > 0;
-
-      // Verificar si la fecha pertenece al mes o año seleccionado
       const perteneceAFecha =
         item.fecha_extraccion &&
         (modoFecha === "mes"
-          ? item.fecha_extraccion.startsWith(mesSeleccionado) // Mes completo (YYYY-MM)
-          : item.fecha_extraccion.startsWith(mesSeleccionado.slice(0, 4))); // Año (YYYY)
+          ? item.fecha_extraccion.startsWith(mesSeleccionado)
+          : item.fecha_extraccion.startsWith(mesSeleccionado.slice(0, 4)));
       const perteneceATipoEnvase =
         tipoEnvaseSeleccionado === "" || item.envase === tipoEnvaseSeleccionado;
 
-      return tienePrecio && perteneceAFecha && perteneceATipoEnvase; // Solo retorna el item si tiene precio y pertenece a la fecha
+      return tienePrecio && perteneceAFecha && perteneceATipoEnvase;
     });
 
     const preciosPorUrl = {};
@@ -87,6 +76,7 @@ const GraficoPrecioAceitePorMarketplace = () => {
       if (!preciosPorUrl[url]) preciosPorUrl[url] = [];
       preciosPorUrl[url].push(parseFloat(item.precio_litro));
     });
+
     const promedioPorUrl = Object.entries(preciosPorUrl).map(
       ([url, precios]) => ({
         url,
@@ -100,7 +90,10 @@ const GraficoPrecioAceitePorMarketplace = () => {
         trigger: "item",
         formatter: (params) => `
           <strong>${params.name}</strong><br/>
-          Precio promedio por litro: $${params.value.toFixed(2)}
+          Precio promedio por litro: $${params.value.toLocaleString("es-ES", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
         `,
       },
       grid: {
@@ -112,7 +105,7 @@ const GraficoPrecioAceitePorMarketplace = () => {
       },
       xAxis: {
         type: "value",
-        name: "Precio por litro (sin IVA)",
+        name: "Precio por litro",
         nameLocation: "middle",
         nameGap: 25,
         axisLine: {
@@ -145,26 +138,35 @@ const GraficoPrecioAceitePorMarketplace = () => {
           label: {
             show: true,
             position: "right",
-            fontSize: 13, // Tamaño de la fuente para las etiquetas dentro de las barras
-            color: "#fff", // Color de la etiqueta
-            fontWeight: "bold", // Hacer la etiqueta en negrita
-            formatter: (params) => `$${params.value.toFixed(0)}`,
+            fontSize: 13,
+            color: "#fff",
+            fontWeight: "bold",
+            formatter: (params) =>
+              `$${params.value.toLocaleString("es-ES", {
+                maximumFractionDigits: 0,
+              })}`,
           },
         },
       ],
     };
   };
 
+  const opcionesGrafico = useMemo(
+    () => procesarDatos(dataJson),
+    [dataJson, mesSeleccionado, modoFecha, tipoEnvaseSeleccionado]
+  );
+
   if (loading) return <div>Cargando datos...</div>;
   if (error) return <div>{error}</div>;
   if (!mesSeleccionado) return <div>No hay meses disponibles.</div>;
+
   return (
     <div style={{ padding: "30px" }}>
       <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
-        Precio Promedio con IVA por un Litro de Aceite
+        Precio promedio por litro -{" "}
+        {modoFecha === "mes" ? mesSeleccionado : `Año ${mesSeleccionado}`}
       </h2>
 
-      {/* Selector de mes */}
       <div style={{ textAlign: "center", marginBottom: "20px" }}>
         <label htmlFor="modoFecha" style={{ marginRight: "10px" }}>
           Ver por:
@@ -210,7 +212,8 @@ const GraficoPrecioAceitePorMarketplace = () => {
               }
             })}
         </select>
-        <div style={{ textAlign: "center", marginBottom: "20px" }}>
+
+        <div style={{ textAlign: "center", marginTop: "10px" }}>
           <label htmlFor="tipoEnvase" style={{ marginRight: "10px" }}>
             Tipo de envase:
           </label>
@@ -230,7 +233,7 @@ const GraficoPrecioAceitePorMarketplace = () => {
       </div>
 
       <ReactECharts
-        option={procesarDatos(dataJson)}
+        option={opcionesGrafico}
         style={{ height: "600px", width: "100%" }}
         theme="light"
       />

@@ -73,15 +73,13 @@ const GraficoPrecioAceitePorMarketplaceExclusivo = () => {
 
   const procesarDatos = (data) => {
     const datosFiltrados = data.filter((item) => {
-      // Verificar si tiene precio
       const tienePrecio = item.precio_litro !== null && item.precio_litro > 0;
 
-      // Verificar si la fecha pertenece al mes o año seleccionado
       const perteneceAFecha =
         item.fecha_extraccion &&
         (modoFecha === "mes"
-          ? item.fecha_extraccion.startsWith(mesSeleccionado) // Mes completo (YYYY-MM)
-          : item.fecha_extraccion.startsWith(mesSeleccionado.slice(0, 4))); // Año (YYYY)
+          ? item.fecha_extraccion.startsWith(mesSeleccionado)
+          : item.fecha_extraccion.startsWith(mesSeleccionado.slice(0, 4)));
       const perteneceATipoEnvase =
         tipoEnvaseSeleccionado === "" || item.envase === tipoEnvaseSeleccionado;
       const perteneceAMarca =
@@ -91,7 +89,7 @@ const GraficoPrecioAceitePorMarketplaceExclusivo = () => {
         perteneceAFecha &&
         perteneceATipoEnvase &&
         perteneceAMarca
-      ); // Solo retorna el item si tiene precio y pertenece a la fecha
+      );
     });
 
     const preciosPorUrl = {};
@@ -111,10 +109,12 @@ const GraficoPrecioAceitePorMarketplaceExclusivo = () => {
     return {
       tooltip: {
         trigger: "item",
-        formatter: (params) => `
-          <strong>${params.name}</strong><br/>
-          Precio promedio por litro: $${params.value.toFixed(2)}
-        `,
+        formatter: (params) =>
+          `<strong style="color: black;">${
+            params.name
+          }</strong><br/>Precio promedio por litro: $${new Intl.NumberFormat(
+            "es-ES"
+          ).format(Math.round(params.value))}`,
       },
       grid: {
         left: "20%",
@@ -158,10 +158,13 @@ const GraficoPrecioAceitePorMarketplaceExclusivo = () => {
           label: {
             show: true,
             position: "right",
-            fontSize: 13, // Tamaño de la fuente para las etiquetas dentro de las barras
-            color: "#fff", // Color de la etiqueta
-            fontWeight: "bold", // Hacer la etiqueta en negrita
-            formatter: (params) => `$${params.value.toFixed(0)}`,
+            fontSize: 13,
+            color: "#fff",
+            fontWeight: "bold",
+            formatter: (params) =>
+              `$${new Intl.NumberFormat("es-ES").format(
+                params.value.toFixed(0)
+              )}`,
           },
         },
       ],

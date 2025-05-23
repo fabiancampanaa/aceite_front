@@ -81,8 +81,12 @@ const ListaBusquedasRRSSMarca = () => {
       },
       label: {
         show: true,
+        position: "right",
+        fontSize: 13,
         color: "#fff",
         fontWeight: "bold",
+        formatter: (params) =>
+          `${new Intl.NumberFormat("es-ES").format(Math.round(params.value))}`,
       },
 
       tooltip: {

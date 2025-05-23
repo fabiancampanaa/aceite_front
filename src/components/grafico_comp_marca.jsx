@@ -89,10 +89,12 @@ const GraficoPrecioAceitePorMarca = () => {
     return {
       tooltip: {
         trigger: "item",
-        formatter: (params) => `
-          <strong>${params.name}</strong><br/>
-          Precio promedio por litro: $${params.value.toFixed(2)}
-        `,
+        formatter: (params) =>
+          `<strong style="color: black;">${
+            params.name
+          }</strong><br/>Precio promedio por litro: $${new Intl.NumberFormat(
+            "es-ES"
+          ).format(Math.round(params.value))}`,
       },
       grid: {
         left: "20%",
@@ -121,6 +123,12 @@ const GraficoPrecioAceitePorMarca = () => {
         data: promedioPorMarca.map((item) =>
           item.marca.length > 30 ? item.marca.slice(0, 27) + "..." : item.marca
         ),
+        axisLabel: {
+          interval: 0, // <-- Mostrar todas las etiquetas
+          formatter: function (value) {
+            return value.length > 30 ? value.slice(0, 27) + "..." : value;
+          },
+        },
       },
       series: [
         {
@@ -146,10 +154,13 @@ const GraficoPrecioAceitePorMarca = () => {
           label: {
             show: true,
             position: "right",
-            fontSize: 13,
+            fontSize: 12,
             color: "#fff",
             fontWeight: "bold",
-            formatter: (params) => `$${params.value.toFixed(0)}`,
+            formatter: (params) =>
+              `$${new Intl.NumberFormat("es-ES").format(
+                params.value.toFixed(0)
+              )}`,
           },
         },
       ],
