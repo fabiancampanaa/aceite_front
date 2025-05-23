@@ -14,15 +14,23 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("user");
   };
 
+  const isLikelyJWT = (token) =>
+    typeof token === "string" && token.split(".").length === 3;
+
   const validateToken = (token) => {
     try {
-      const parts = token.split(".");
-      if (parts.length !== 3) {
+      if (!isLikelyJWT(token)) {
         throw new Error("El token no tiene el formato JWT esperado");
       }
 
       const decodeFn = jwtDecode.default || jwtDecode;
-      const decoded = decodeFn(token);
+
+      let decoded;
+      try {
+        decoded = decodeFn(token);
+      } catch (err) {
+        throw new Error("No se pudo decodificar el token");
+      }
 
       if (decoded.exp * 1000 < Date.now()) {
         console.warn("Token expirado");
@@ -38,10 +46,14 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem("authToken");
     const userData = localStorage.getItem("user");
 
-    if (token && token !== "undefined" && token.trim() !== "" && userData) {
+    console.log("Token recuperado:", token); // ✅ Mejora #2
+
+    if (isLikelyJWT(token) && userData) {
       validateToken(token);
       setAuthToken(token);
       setUser(JSON.parse(userData));
+    } else {
+      logout(); // ✅ Limpia localStorage si es inválido
     }
   }, []);
 
