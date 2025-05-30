@@ -7,7 +7,7 @@ function Cabecera() {
   const handleLogout = () => {
     // Lógica de cierre de sesión, como eliminar token o limpiar datos
     localStorage.removeItem("token"); // Ejemplo de eliminar el token del localStorage
-    navigate("/"); // Redirige al login después de cerrar sesión
+    navigate("/aplicacion"); // Redirige al login después de cerrar sesión
   };
 
   return (
@@ -18,7 +18,7 @@ function Cabecera() {
             {/* Logo a la izquierda */}
             <div className="column is-narrow">
               <figure className="image is-128x128 is-inline-block">
-                <img src="/images/logo.png" alt="Logo" />
+                <img src="aplicacion/images/logo.png" alt="Logo" />
               </figure>
             </div>
             {/* Título centrado */}

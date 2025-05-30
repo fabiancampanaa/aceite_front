@@ -11,14 +11,14 @@ function App() {
   const location = useLocation();
 
   // Solo mostramos Cabecera y Footer si no estamos en la ruta de inicio "/"
-  const isAuthPage = location.pathname === "/";
+  const isAuthPage = location.pathname === "/aplicacion";
 
   return (
     <div className="hero is-fullheight">
       {!isAuthPage && <Cabecera />}
 
       <Routes>
-        <Route path="/" element={<Inicio />} />
+        <Route path="/aplicacion" element={<Inicio />} />
         <Route
           path="/dashboard"
           element={

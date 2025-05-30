@@ -42,7 +42,7 @@ function Inicio() {
           numero_telefono: numberRef.current.value,
         };
 
-        await axios.post("http://localhost:8000/api/register/", userData);
+        await axios.post("http://localhost/api/register/", userData);
 
         setShowSuccess(true);
         setTimeout(() => {
@@ -51,7 +51,7 @@ function Inicio() {
           resetForm();
         }, 1000);
       } else {
-        const response = await axios.post("http://localhost:8000/api/login/", {
+        const response = await axios.post("http://localhost/api/login/", {
           email: emailRef.current.value,
           password: passwordRef.current.value,
         });
