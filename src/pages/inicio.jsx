@@ -42,31 +42,30 @@ function Inicio() {
           numero_telefono: numberRef.current.value,
         };
 
-        await axios.post("http://localhost/api/register/", userData);
+        const response = await axios.post(
+          "https://aceitesdo.cl/api/register",
+          userData
+        );
 
+        const { token, user } = response.data;
+        login(user, token);
         setShowSuccess(true);
-        setTimeout(() => {
-          setShowSuccess(false);
-          setIsRegistering(false);
-          resetForm();
-        }, 1000);
       } else {
-        const response = await axios.post("http://localhost/api/login/", {
+        const response = await axios.post("https://aceitesdo.cl/api/login", {
           email: emailRef.current.value,
           password: passwordRef.current.value,
         });
 
-        // Verifica la respuesta del servidor
         if (!response.data.token) {
           throw new Error("No se recibió token de autenticación");
         }
 
         const { token, user } = response.data;
         login(user, token);
+        console.log("usuario registrado");
 
         const tipoUsuario = user.tipo_usuario;
 
-        // Redirección según tipo de usuario
         switch (tipoUsuario) {
           case "admin":
             navigate("/gestion_usuarios");
@@ -79,15 +78,42 @@ function Inicio() {
             break;
           default:
             console.warn("Tipo de usuario desconocido:", tipoUsuario);
-            navigate("/", { replace: true });
+            navigate("/aplicacion", { replace: true });
         }
       }
     } catch (err) {
-      console.error("Error en autenticación:", err);
-      setError(
-        err.response?.data?.message ||
-          "Error al iniciar sesión. Verifique sus credenciales."
+      console.error(
+        "Error en autenticación:",
+        err.response?.data || err.message
       );
+
+      if (err.response) {
+        const status = err.response.status;
+        const data = err.response.data;
+
+        if (status === 409) {
+          // Registro duplicado
+          if (data.username) {
+            setError("El nombre de usuario ya está registrado.");
+          } else if (data.email) {
+            setError("El correo ya está registrado.");
+          } else {
+            setError("Conflicto: Verifica tus datos.");
+          }
+        } else if (status === 400) {
+          // Errores de validación del backend
+          const messages = Object.entries(data)
+            .map(([campo, errores]) => `${campo}: ${errores.join(", ")}`)
+            .join("\n");
+          setError(messages);
+        } else if (status === 401) {
+          setError("Credenciales inválidas. Verifica tu correo y contraseña.");
+        } else {
+          setError("Error del servidor: " + (data.message || status));
+        }
+      } else {
+        setError("Error de red o del servidor. Inténtalo más tarde.");
+      }
     } finally {
       setIsLoading(false);
     }

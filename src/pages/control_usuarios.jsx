@@ -17,7 +17,7 @@ function GestionUsuarios() {
     const token = localStorage.getItem("authToken");
 
     axios
-      .get("http://127.0.0.1:8000/api/v1/users/", {
+      .get("https://aceitesdo.cl/api/v1/users", {
         headers: {
           Authorization: `Token ${token}`,
         },
@@ -68,7 +68,7 @@ function GestionUsuarios() {
 
     axios
       .patch(
-        `http://127.0.0.1:8000/api/v1/users/${selectedUser.id}/`,
+        `https://aceitesdo.cl/api/v1/users/${selectedUser.id}/`,
         { tipo_acceso: tipoAcceso },
         {
           headers: {
@@ -90,7 +90,7 @@ function GestionUsuarios() {
     const token = localStorage.getItem("authToken");
 
     axios
-      .get("http://127.0.0.1:8000/api/v1/busquedas/", {
+      .get("https://aceitesdo.cl/api/v1/busquedas/", {
         headers: {
           Authorization: `Token ${token}`,
         },
@@ -108,7 +108,7 @@ function GestionUsuarios() {
     const token = localStorage.getItem("authToken");
 
     axios
-      .get("http://127.0.0.1:8000/api/v1/busquedasrrss/", {
+      .get("https://aceitesdo.cl/api/v1/busquedasrrss/", {
         headers: {
           Authorization: `Token ${token}`,
         },

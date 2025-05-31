@@ -25,9 +25,7 @@ function Dashboard() {
     setError(null);
 
     try {
-      const response = await axios.get(
-        "http://127.0.0.1:8000/api/v1/busquedas/"
-      );
+      const response = await axios.get("https://aceitesdo.cl/api/v1/busquedas");
       setData(response.data);
       setLastUpdated(new Date());
     } catch (error) {

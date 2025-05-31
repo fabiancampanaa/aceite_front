@@ -1,7 +1,7 @@
 import { Routes, Route, useLocation } from "react-router-dom";
 import Cabecera from "./components/cabecera";
 import Footer from "./components/footer";
-import Inicio from "./pages/Inicio";
+import Inicio from "./pages/inicio";
 import Dashboard from "./pages/dashboard";
 import CargarExcel from "./pages/carga_datos";
 import GestionUsuarios from "./pages/control_usuarios";
@@ -11,7 +11,7 @@ function App() {
   const location = useLocation();
 
   // Solo mostramos Cabecera y Footer si no estamos en la ruta de inicio "/"
-  const isAuthPage = location.pathname === "/aplicacion";
+  const isAuthPage = location.pathname === "aceitesdo.cl/aplicacion/";
 
   return (
     <div className="hero is-fullheight">

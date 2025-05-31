@@ -18,7 +18,7 @@ function Cabecera() {
             {/* Logo a la izquierda */}
             <div className="column is-narrow">
               <figure className="image is-128x128 is-inline-block">
-                <img src="aplicacion/images/logo.png" alt="Logo" />
+                <img src="images/logo.png" alt="Logo" />
               </figure>
             </div>
             {/* Título centrado */}

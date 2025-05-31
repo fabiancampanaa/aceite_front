@@ -55,16 +55,13 @@ const CargarExcel = () => {
 
     setCargando(true);
     try {
-      const respuesta = await fetch(
-        `http://localhost:8000/api/${nombreCampo}/`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Token ${token}`,
-          },
-          body: formData,
-        }
-      );
+      const respuesta = await fetch(`https://aceitesdo.cl/api/${nombreCampo}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+        body: formData,
+      });
 
       const data = await respuesta.json().catch(() => ({}));
 

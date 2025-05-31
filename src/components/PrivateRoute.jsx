@@ -6,7 +6,7 @@ export function PrivateRoute({ children }) {
 
   if (!user) {
     // Redirige al inicio de sesión si no hay usuario autenticado
-    return <Navigate to="/" replace />;
+    return <Navigate to="/aplicacion" replace />;
   }
 
   return children; // Renderiza el contenido protegido
