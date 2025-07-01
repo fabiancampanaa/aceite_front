@@ -7,7 +7,11 @@ import { useAuth } from "../context/AuthContext";
 function Inicio() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const nameRef = useRef(null);
+
+  // Refs para formulario registro/login
+  const userRef = useRef(null);
+  const firstNameRef = useRef(null);
+  const lastNameRef = useRef(null);
   const emailRef = useRef(null);
   const numberRef = useRef(null);
   const passwordRef = useRef(null);
@@ -25,21 +29,35 @@ function Inicio() {
 
     try {
       if (isRegistering) {
+        const username = userRef.current.value.trim();
+        const first_name = firstNameRef.current.value.trim();
+        const last_name = lastNameRef.current.value.trim();
+
+        if (/\s/.test(username)) {
+          setError("El nombre de usuario no debe contener espacios.");
+          setIsLoading(false);
+          return;
+        }
+
         if (passwordRef.current.value.length < 6) {
           setError("La contraseña debe tener al menos 6 caracteres");
+          setIsLoading(false);
           return;
         }
 
         if (passwordRef.current.value !== confirmPasswordRef.current.value) {
           setError("Las contraseñas no coinciden");
+          setIsLoading(false);
           return;
         }
 
         const userData = {
-          username: nameRef.current.value,
-          email: emailRef.current.value,
+          username,
+          first_name,
+          last_name,
+          email: emailRef.current.value.trim(),
           password: passwordRef.current.value,
-          numero_telefono: numberRef.current.value,
+          numero_telefono: numberRef.current.value.trim(),
         };
 
         const response = await axios.post(
@@ -50,9 +68,10 @@ function Inicio() {
         const { token, user } = response.data;
         login(user, token);
         setShowSuccess(true);
+        resetForm();
       } else {
         const response = await axios.post("https://aceitesdo.cl/api/login", {
-          email: emailRef.current.value,
+          email: emailRef.current.value.trim(),
           password: passwordRef.current.value,
         });
 
@@ -62,7 +81,6 @@ function Inicio() {
 
         const { token, user } = response.data;
         login(user, token);
-        console.log("usuario registrado");
 
         const tipoUsuario = user.tipo_usuario;
 
@@ -120,8 +138,12 @@ function Inicio() {
   };
 
   const resetForm = () => {
-    emailRef.current.value = "";
-    passwordRef.current.value = "";
+    if (userRef.current) userRef.current.value = "";
+    if (firstNameRef.current) firstNameRef.current.value = "";
+    if (lastNameRef.current) lastNameRef.current.value = "";
+    if (emailRef.current) emailRef.current.value = "";
+    if (numberRef.current) numberRef.current.value = "";
+    if (passwordRef.current) passwordRef.current.value = "";
     if (confirmPasswordRef.current) confirmPasswordRef.current.value = "";
   };
 
@@ -142,7 +164,15 @@ function Inicio() {
               </p>
             </div>
           )}
-
+          {/* Texto arriba */}
+          <div className="has-text-centered mb-5" style={{ maxWidth: "500px" }}>
+            <p className="subtitle is-5 has-text-grey-dark">
+              Para acceder a la visualización de los indicadores gráficos, los
+              usuarios deben suscribirse completando el formulario adjunto. Si
+              ya posee una cuenta, ingrese su correo electrónico y contraseña.
+              En caso contrario, haga clic en “¿No tienes cuenta? Regístrate”.
+            </p>
+          </div>
           <h1 className="title has-text-centered">
             {isRegistering ? "Registro" : "Inicio de sesión"}
           </h1>
@@ -158,13 +188,47 @@ function Inicio() {
             {isRegistering && (
               <>
                 <div className="field">
+                  <label className="label">Usuario</label>
+                  <div className="control has-icons-left">
+                    <input
+                      className="input"
+                      type="text"
+                      placeholder="Ej: juan123 (sin espacios)"
+                      ref={userRef}
+                      required
+                      pattern="^\S+$"
+                      title="El usuario no debe contener espacios"
+                    />
+                    <span className="icon is-small is-left">
+                      <i className="fas fa-user-circle"></i>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="field">
                   <label className="label">Nombre</label>
                   <div className="control has-icons-left">
                     <input
                       className="input"
                       type="text"
-                      placeholder="Ej: Juan Pérez"
-                      ref={nameRef}
+                      placeholder="Ej: Juan"
+                      ref={firstNameRef}
+                      required
+                    />
+                    <span className="icon is-small is-left">
+                      <i className="fas fa-user"></i>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="field">
+                  <label className="label">Apellido</label>
+                  <div className="control has-icons-left">
+                    <input
+                      className="input"
+                      type="text"
+                      placeholder="Ej: Pérez"
+                      ref={lastNameRef}
                       required
                     />
                     <span className="icon is-small is-left">
@@ -262,6 +326,8 @@ function Inicio() {
               onClick={() => {
                 setIsRegistering(!isRegistering);
                 setError("");
+                setShowSuccess(false);
+                resetForm();
               }}
               disabled={isLoading}
             >

@@ -82,6 +82,12 @@ function Dashboard() {
             <p className="subtitle is-6 has-text-grey-light">
               Análisis en tiempo real de productos y precios
             </p>
+            {usuario?.tipo_acceso === "General" && (
+              <p className="has-text-warning has-text-weight-semibold mb-2">
+                Para visualizar gráficos de marcas, debes solicitar acceso al
+                correo "Gdiaz@uc.cl"
+              </p>
+            )}
             {/* Línea para mostrar usuario y tipo */}
             <p className="has-text-grey-light is-size-7 mt-1">
               Usuario: {usuario?.username || "Anónimo"} - Tipo:{" "}

@@ -18,7 +18,9 @@ function Cabecera() {
             {/* Logo a la izquierda */}
             <div className="column is-narrow">
               <figure className="image is-128x128 is-inline-block">
-                <img src="images/logo.png" alt="Logo" />
+                <a href="https://www.aceitesdo.cl">
+                  <img src="images/logo.png" alt="Logo" />
+                </a>
               </figure>
             </div>
             {/* Título centrado */}
