@@ -126,6 +126,18 @@ const ListaBusquedasRRSSMarca = () => {
         option={opcionesGrafico}
         style={{ height: "500px", margin: "20px 0" }}
       />
+      <div>
+        <h1
+          style={{
+            color: "white",
+            fontWeight: "bold",
+            textAlign: "center",
+            marginTop: "1rem",
+          }}
+        >
+          PARA VISUALIZAR DEBE SELECCIONAR LAS MARCAS BAJO EL EJE "X"
+        </h1>
+      </div>
     </div>
   );
 };

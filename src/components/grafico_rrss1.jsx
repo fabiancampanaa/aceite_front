@@ -29,6 +29,7 @@ const ListaBusquedasRRSS = () => {
     }, {});
 
     return {
+      color: ["#B02F3C", "#38ad28ff", "#2598dac2", "#32CD32", "#1E90FF"],
       title: {
         text: "Distribución por Red Social",
         left: "center",

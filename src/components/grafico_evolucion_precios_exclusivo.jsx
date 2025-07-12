@@ -272,7 +272,7 @@ const GraficoPreciosMensualesExclusivo = ({ showMarca = true }) => {
   }
 
   return (
-    <div style={{ padding: 20 }}>
+    <div style={{ padding: 20 }} className="has-background-dark">
       <Card
         title="Evolución de Precios con IVA homologado a un litro de aceite"
         extra={
@@ -307,6 +307,18 @@ const GraficoPreciosMensualesExclusivo = ({ showMarca = true }) => {
             theme="light"
           />
         )}
+        <div>
+          <h2
+            style={{
+              color: "black",
+              fontWeight: "bold",
+              textAlign: "center",
+              marginTop: "1rem",
+            }}
+          >
+            PARA VISUALIZAR DEBE SELECCIONAR LAS MARCAS BAJO EL EJE "X"
+          </h2>
+        </div>
       </Card>
     </div>
   );

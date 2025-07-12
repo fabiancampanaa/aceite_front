@@ -2,7 +2,6 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import GraficoPorMarketplace from "../components/grafico_cant_marca";
-//import GraficoPreciosMensuales from "../components/grafico_evolucion_precios";
 import GraficoComparacionPorMarketplace from "../components/grafico_comp_market";
 import GraficoPrecioAceitePorMarketplaceExclusivo from "../components/grafico_comp_market_exclusivo";
 import GraficoPreciosMensualesExclusivo from "../components/grafico_evolucion_precios_exclusivo";
@@ -55,8 +54,6 @@ function Dashboard() {
 
     axios.defaults.headers.common["Authorization"] = `Token ${token}`;
     fetchData();
-
-    // Eliminado el intervalo para actualización automática
   }, [navigate]);
 
   const TituloConIcono = ({ icono, texto }) => (
@@ -71,7 +68,10 @@ function Dashboard() {
   );
 
   return (
-    <div className="section p-4" style={{ minHeight: "100vh" }}>
+    <div
+      className="section p-4 has-background-black"
+      style={{ minHeight: "100vh" }}
+    >
       {/* Header */}
       <div className="level is-mobile">
         <div className="level-left">
@@ -88,7 +88,6 @@ function Dashboard() {
                 correo "Gdiaz@uc.cl"
               </p>
             )}
-            {/* Línea para mostrar usuario y tipo */}
             <p className="has-text-grey-light is-size-7 mt-1">
               Usuario: {usuario?.username || "Anónimo"} - Tipo:{" "}
               {usuario?.tipo_acceso || "Desconocido"}
@@ -104,7 +103,9 @@ function Dashboard() {
               aria-label="Actualizar datos"
             >
               <span className="icon">
-                <i className="fas fa-sync-alt"></i>
+                <i
+                  className={`fas fa-sync-alt ${loading ? "fa-spin" : ""}`}
+                ></i>
               </span>
               <span className="is-hidden-mobile">Actualizar</span>
             </button>
@@ -125,11 +126,7 @@ function Dashboard() {
 
       {error && (
         <div className="notification is-danger is-light">
-          <button
-            className="delete"
-            onClick={() => setError(null)}
-            aria-label="Cerrar notificación de error"
-          ></button>
+          <button className="delete" onClick={() => setError(null)}></button>
           <div className="is-flex is-align-items-center">
             <span className="icon mr-2">
               <i className="fas fa-exclamation-triangle"></i>
@@ -195,8 +192,8 @@ function Dashboard() {
       {!loading && !error && (
         <div className="fixed-grid has-1-cols">
           {/* Gráfico: Distribución por Marketplace */}
-          <div className="column is-12-desktop is-12-mobile">
-            <div className="box">
+          <div className="column is-12">
+            <div className="box has-background-black-bis has-text-white graph-box">
               <TituloConIcono
                 icono="fa-store"
                 texto="Distribución por Marketplace"
@@ -208,33 +205,33 @@ function Dashboard() {
           {/* Comparación por Marketplace */}
           {(usuario?.tipo_acceso === "General" ||
             usuario?.tipo_acceso === "Exclusivo") && (
-            <div className="column is-12-desktop is-12-mobile">
-              <div className="box">
+            <div className="column is-12">
+              <div className="box has-background-grey-darker has-text-white graph-box">
                 <TituloConIcono
                   icono={
-                    usuario.tipo_acceso === "Exclusivo"
+                    usuario?.tipo_acceso === "Exclusivo"
                       ? "fa-lock"
                       : "fa-balance-scale-right"
                   }
                   texto={
-                    usuario.tipo_acceso === "Exclusivo"
+                    usuario?.tipo_acceso === "Exclusivo"
                       ? "Comparación entre Marketplaces (Con filtro de Marca)"
                       : "Comparación entre Marketplaces"
                   }
                 />
-                {usuario.tipo_acceso === "General" ? (
+                {usuario?.tipo_acceso === "General" ? (
                   <GraficoComparacionPorMarketplace data={data} />
                 ) : (
                   <div className="fixed-grid has-1-cols">
                     <div className="column is-12 p-4">
-                      <div className="box">
+                      <div className="box has-background-grey-darker has-text-white graph-box">
                         <GraficoPrecioAceitePorMarketplaceExclusivo
                           data={data}
                         />
                       </div>
                     </div>
                     <div className="column is-12">
-                      <div className="box">
+                      <div className="box has-background-grey-darker has-text-white graph-box">
                         <GraficoPrecioAceitePorMarca data={data} />
                       </div>
                     </div>
@@ -248,58 +245,50 @@ function Dashboard() {
           {(usuario?.tipo_acceso === "General" ||
             usuario?.tipo_acceso === "Exclusivo") && (
             <div className="column is-12">
-              <div className="box">
+              <div className="box has-background-grey-darker has-text-white graph-box">
                 <TituloConIcono
                   icono={
-                    usuario.tipo_acceso === "Exclusivo"
+                    usuario?.tipo_acceso === "Exclusivo"
                       ? "fa-lock"
                       : "fa-chart-line"
                   }
                   texto={
-                    usuario.tipo_acceso === "Exclusivo"
+                    usuario?.tipo_acceso === "Exclusivo"
                       ? "Evolución de Precios Mensuales (con filtro de Marca)"
                       : "Evolución de Precios Mensuales"
                   }
                 />
-                {usuario.tipo_acceso === "General" ? (
-                  <GraficoPreciosMensualesExclusivo
-                    data={data}
-                    showMarca={false}
-                  />
-                ) : (
-                  <GraficoPreciosMensualesExclusivo
-                    data={data}
-                    showMarca={true}
-                  />
-                )}
+                <GraficoPreciosMensualesExclusivo
+                  data={data}
+                  showMarca={usuario?.tipo_acceso !== "General"}
+                />
               </div>
             </div>
           )}
 
           {/* RRSS */}
           <div className="column is-12">
-            <div className="box">
+            <div className="box has-background-grey-darker has-text-white graph-box">
               <TituloConIcono
                 icono="fa-hashtag"
                 texto="Tendencias en Redes Sociales"
               />
-
-              {usuario.tipo_acceso === "General" ? (
+              {usuario?.tipo_acceso === "General" ? (
                 <ListaBusquedasRRSS data={data} />
               ) : (
                 <div className="fixed-grid has-1-cols">
                   <div className="column is-12 p-4">
-                    <div className="box">
+                    <div className="box has-background-grey-darker has-text-white graph-box">
                       <ListaBusquedasRRSS data={data} />
                     </div>
                   </div>
                   <div className="column is-12 p-4">
-                    <div className="box">
+                    <div className="box has-background-grey-darker has-text-white graph-box">
                       <ListaBusquedasRRSSMarca data={data} />
                     </div>
                   </div>
                   <div className="column is-12 p-4">
-                    <div className="box">
+                    <div className="box has-background-grey-darker has-text-white graph-box">
                       <ListaBusquedasRRSSEvolucion data={data} />
                     </div>
                   </div>

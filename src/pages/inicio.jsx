@@ -148,8 +148,8 @@ function Inicio() {
   };
 
   return (
-    <section className="hero is-fullheight">
-      <div className="hero-body is-flex is-justify-content-center is-align-items-center">
+    <section className="hero is-fullheight has-background-grey-dark">
+      <div className="hero-body is-flex is-justify-content-center is-align-items-center has-background-dark">
         <div className="box" style={{ width: "450px", position: "relative" }}>
           {/* Notificación de éxito */}
           {showSuccess && (

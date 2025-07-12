@@ -3,10 +3,10 @@ import { getAllBusquedasrrss } from "../api/busquedas.api";
 import ReactECharts from "echarts-for-react";
 
 const colorMarcas = {
-  Albiña: "#06541c",
-  "Alma del Huasco": "#06541c",
-  Azzait: "#06541c",
-  Payantume: "#06541c",
+  Albiña: "#B02F3C",
+  "Alma del Huasco": "#B02F3C",
+  Azzait: "#B02F3C",
+  Payantume: "#B02F3C",
 };
 
 const ListaBusquedasRRSSMarca = () => {

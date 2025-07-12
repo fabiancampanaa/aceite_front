@@ -144,7 +144,7 @@ const GraficoPrecioAceitePorMarca = () => {
                 "Alma del Huasco",
                 "Azaitt",
               ].includes(item.marca)
-                ? "#06541c" // Rojo para destacar
+                ? "#B02F3C" // Rojo para destacar
                 : "#5470C6", // Color normal
             },
           })),
