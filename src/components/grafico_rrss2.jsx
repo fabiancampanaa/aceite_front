@@ -54,7 +54,6 @@ const ListaBusquedasRRSSMarca = () => {
       return acc;
     }, {});
 
-    // Ordenar marcas por promedio descendente
     let marcas = Object.keys(datosPorMarca);
     const marcasConPromedio = marcas.map((marca) => {
       const { total, count } = datosPorMarca[marca];
@@ -110,6 +109,48 @@ const ListaBusquedasRRSSMarca = () => {
     };
   }, [busquedas]);
 
+  const renderEstrellas = (valor) => {
+    const estrellasLlenas = Math.round(valor);
+    const estrellas = [];
+
+    for (let i = 0; i < 5; i++) {
+      estrellas.push(
+        <span
+          key={i}
+          style={{
+            color: i < estrellasLlenas ? "#FFD700" : "#555",
+            fontSize: "20px",
+          }}
+        >
+          ★
+        </span>
+      );
+    }
+
+    return <span>{estrellas}</span>;
+  };
+
+  const valoracionesPorMarca = useMemo(() => {
+    const agrupado = busquedas.reduce((acc, item) => {
+      const marca = item?.marca?.trim();
+      const valoracion = Number(item?.valoracion);
+
+      if (!marca || isNaN(valoracion)) return acc;
+
+      if (!acc[marca]) acc[marca] = { total: 0, count: 0 };
+
+      acc[marca].total += valoracion;
+      acc[marca].count += 1;
+
+      return acc;
+    }, {});
+
+    return Object.entries(agrupado).map(([marca, { total, count }]) => ({
+      marca,
+      promedio: total / count,
+    }));
+  }, [busquedas]);
+
   if (cargando) return <p role="alert">Cargando datos...</p>;
   if (error) return <p role="alert">Error: {error}</p>;
 
@@ -119,6 +160,53 @@ const ListaBusquedasRRSSMarca = () => {
         option={optionSeguidores}
         style={{ height: "400px", margin: "20px 0" }}
       />
+
+      <div style={{ marginTop: "30px", color: "#fff" }}>
+        <h3
+          style={{ textAlign: "center", marginBottom: "10px", color: "#fff" }}
+        >
+          Valoración Promedio por Marca
+        </h3>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            gap: "30px",
+          }}
+        >
+          {valoracionesPorMarca.map(({ marca, promedio }) => (
+            <div key={marca} style={{ textAlign: "center", color: "#fff" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                }}
+              >
+                <strong style={{ color: "#fff" }}>{marca}</strong>
+                {colorMarcas[marca] && (
+                  <span
+                    style={{
+                      backgroundColor: "#FFD700",
+                      color: "#000",
+                      padding: "2px 6px",
+                      borderRadius: "10px",
+                      fontSize: "12px",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    Destacada
+                  </span>
+                )}
+              </div>
+              <div>{renderEstrellas(promedio)}</div>
+              <small style={{ color: "#fff" }}>{promedio.toFixed(1)} / 5</small>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
